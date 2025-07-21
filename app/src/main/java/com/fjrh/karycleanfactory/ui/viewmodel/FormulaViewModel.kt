@@ -20,7 +20,8 @@ class FormulaViewModel(private val dao: FormulaDao) : ViewModel() {
             dao.insert(
                 FormulaEntity(
                     nombre = "Multiusos",
-                    descripcion = "Agua, detergente y esencia"
+                    descripcion = "Agua, detergente y esencia",
+                    litros = 20.5
                 )
             )
         }

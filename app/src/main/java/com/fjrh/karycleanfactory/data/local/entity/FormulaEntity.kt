@@ -8,5 +8,5 @@ data class FormulaEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
     val descripcion: String,
-    val litros: String
+    val litros: Double
 )
