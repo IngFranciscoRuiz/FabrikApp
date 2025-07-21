@@ -1,18 +1,38 @@
 package com.fjrh.karycleanfactory.data.local.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
+import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
 import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
-import kotlinx.coroutines.flow.Flow
+import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
 
 @Dao
 interface FormulaDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(formula: FormulaEntity)
+    @Transaction
+    @Query("SELECT * FROM formulas")
+    suspend fun getAllFormulasConIngredientes(): List<FormulaConIngredientes>
 
-    @Query("SELECT * FROM formulas ORDER BY id DESC")
-    fun getAll(): Flow<List<FormulaEntity>>
+    @Insert
+    suspend fun insertFormula(formula: FormulaEntity): Long
+
+    @Insert
+    suspend fun insertIngredientes(ingredientes: List<IngredienteEntity>)
+
+    @Transaction
+    suspend fun insertarFormulaConIngredientes(
+        formula: FormulaEntity,
+        ingredientes: List<IngredienteEntity>
+    ) {
+        val formulaId = insertFormula(formula)
+        val ingredientesConId = ingredientes.map {
+            it.copy(formulaId = formulaId)
+        }
+        insertIngredientes(ingredientesConId)
+    }
+
+    @Delete
+    suspend fun deleteFormula(formula: FormulaEntity)
+
+    @Query("DELETE FROM ingredientes WHERE formulaId = :formulaId")
+    suspend fun deleteIngredientesByFormulaId(formulaId: Long)
 }
