@@ -36,13 +36,13 @@ fun SplashScreen(navController: NavController) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.karyclean_logo),
+                painter = painterResource(id = R.drawable.karyclean_logo_1),
                 contentDescription = "Logo KaryClean",
                 modifier = Modifier.size(180.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "KARYCLEAN",
+                text = "FACTORY",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF944D2E)

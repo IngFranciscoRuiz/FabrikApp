@@ -2,6 +2,18 @@ package com.fjrh.karycleanfactory.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// Colores institucionales
+val AzulKary = Color(0xFF005BAC)
+val AzulClaro = Color(0xFFDBECFF)
+val AzulBoton = Color(0xFF007BFF)
+val AzulOscuro = Color(0xFF002D5D)
+
+// Tonos neutros
+val BlancoSuave = Color(0xFFF5F9FC)
+val GrisClaro = Color(0xFFEEEEEE)
+val GrisTexto = Color(0xFF444444)
+
+// Colores Material por defecto (puedes ajustar)
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)

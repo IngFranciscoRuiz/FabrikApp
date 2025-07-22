@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
 import com.fjrh.karycleanfactory.data.local.AppDatabase
 import com.fjrh.karycleanfactory.ui.navigation.AppNavigation
-import com.fjrh.karycleanfactory.ui.theme.KaryCleanFactoryTheme
+import com.fjrh.karycleanfactory.ui.theme.KaryCleanTheme
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModel
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModelFactory
 import androidx.navigation.compose.rememberNavController
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         val factory = FormulaViewModelFactory(formulaDao)
 
         setContent {
-            KaryCleanFactoryTheme {
+            KaryCleanTheme {
                 val navController = rememberNavController()
                 val viewModel: FormulaViewModel = viewModel(factory = factory)
 

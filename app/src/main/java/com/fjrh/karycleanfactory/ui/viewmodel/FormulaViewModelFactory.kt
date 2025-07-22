@@ -5,11 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.fjrh.karycleanfactory.data.local.dao.FormulaDao
 
 class FormulaViewModelFactory(private val dao: FormulaDao) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(FormulaViewModel::class.java)) {
-            return FormulaViewModel(dao) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        return FormulaViewModel(dao) as T
     }
 }

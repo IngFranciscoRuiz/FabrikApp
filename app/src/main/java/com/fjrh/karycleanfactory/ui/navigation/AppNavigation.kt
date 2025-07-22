@@ -23,9 +23,18 @@ fun AppNavigation(
         }
 
         composable("formulas") {
-            ListaFormulasScreen(navController, viewModel)
+            ListaFormulasScreen(
+                viewModel = viewModel,
+                onEdit = { formula ->
+                    navController.navigate("nueva_formula")
+                    // Más adelante puedes pasar datos por argumentos
+                },
+                onProduccion = { formula ->
+                    navController.navigate("produccion")
+                    // También puedes pasar datos de fórmula si lo deseas
+                }
+            )
         }
-
         composable("nueva_formula") {
             NuevaFormulaScreen(viewModel, navController)
         }
