@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
 
 class FormulaViewModel(private val dao: FormulaDao) : ViewModel() {
 
@@ -36,6 +37,11 @@ class FormulaViewModel(private val dao: FormulaDao) : ViewModel() {
             val formula = FormulaEntity(nombre = nombre)
             dao.insertarFormulaConIngredientes(formula, ingredientes)
             cargarFormulas() // Recargar la lista después de guardar
+        }
+    }
+    fun insertarHistorial(historial: HistorialProduccionEntity) {
+        viewModelScope.launch {
+            dao.insertarHistorial(historial)
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.fjrh.karycleanfactory.ui.screens
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,19 +18,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModel
-import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModelFactory
+import com.google.gson.Gson
 
 @Composable
 fun ListaFormulasScreen(
     viewModel: FormulaViewModel,
-    onEdit: (FormulaConIngredientes) -> Unit,
-    onProduccion: (FormulaConIngredientes) -> Unit
+    navController: NavController
 ) {
     val listaFormulas by viewModel.formulas.collectAsState()
 
@@ -51,8 +51,15 @@ fun ListaFormulasScreen(
             items(listaFormulas) { formula ->
                 FormulaAccordionCard(
                     formula = formula,
-                    onEdit = { onEdit(formula) },
-                    onProduccion = { onProduccion(formula) }
+                    onEdit = {
+                        navController.navigate("nueva_formula")
+                    },
+                    onProduccion = {
+                        val json = Gson().toJson(formula)
+                        Log.d("DEBUG_JSON", "Enviando fórmula: $json")
+                        val encoded = Uri.encode(json)
+                        navController.navigate("produccion/$encoded")
+                    }
                 )
             }
         }
@@ -67,8 +74,8 @@ fun FormulaAccordionCard(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val cardColor = Color(0xFFEAF0F6) // Blanco azulado metálico
-    val textColor = Color(0xFF1C2A3A) // Azul metálico oscuro
+    val cardColor = Color(0xFFEAF0F6)
+    val textColor = Color(0xFF1C2A3A)
 
     Card(
         shape = RoundedCornerShape(16.dp),

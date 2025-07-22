@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Science
@@ -52,6 +53,11 @@ fun MainMenuScreen(navController: NavController) {
         MenuButton("Fórmulas", Icons.Default.Science) {
             navController.navigate("formulas")
         }
+
+        MenuButton("Nueva fórmula", Icons.Default.Add) {
+            navController.navigate("nueva_formula")
+        }
+
 
         MenuButton("Inventario", Icons.Default.Inventory) {
             navController.navigate("inventario")

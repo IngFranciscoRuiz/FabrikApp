@@ -25,6 +25,7 @@ fun NuevaFormulaScreen(
     var nombreIngrediente by remember { mutableStateOf("") }
     var unidad by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
+    var porcentaje by remember { mutableStateOf("") }
 
     val listaIngredientes = remember { mutableStateListOf<IngredienteEntity>() }
 
@@ -60,6 +61,14 @@ fun NuevaFormulaScreen(
             label = { Text("Ingrediente") },
             modifier = Modifier.fillMaxWidth()
         )
+        OutlinedTextField(
+            value = porcentaje,
+            onValueChange = { porcentaje = it },
+            label = { Text("Porcentaje (ej. 0.25)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -87,7 +96,9 @@ fun NuevaFormulaScreen(
                             formulaId = 0, // Se asignará en el ViewModel
                             nombre = nombreIngrediente,
                             unidad = unidad,
+                            porcentaje = porcentaje.toFloatOrNull() ?: 0f,
                             cantidad = cantidad
+
                         )
                     )
                     nombreIngrediente = ""

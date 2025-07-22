@@ -7,10 +7,18 @@ import androidx.room.RoomDatabase
 import com.fjrh.karycleanfactory.data.local.dao.FormulaDao
 import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
+import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
+import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+
 
 @Database(
-    entities = [FormulaEntity::class, IngredienteEntity::class],
-    version = 1,
+    entities = [
+        FormulaEntity::class,
+        IngredienteEntity::class,
+        HistorialProduccionEntity::class,
+        IngredienteInventarioEntity::class,
+    ],
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,7 +34,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "karyclean_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration() // ⚠️ TODO: Quitar antes de publicar la app
+                    .build()
                 INSTANCE = instance
                 instance
             }

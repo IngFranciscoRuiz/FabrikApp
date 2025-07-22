@@ -21,5 +21,7 @@ data class IngredienteEntity(
     val formulaId: Long,
     val nombre: String,
     val unidad: String,
-    val cantidad: String
+    val cantidad: String,
+    val porcentaje: Float
+
 )

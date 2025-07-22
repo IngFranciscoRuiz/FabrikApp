@@ -11,7 +11,9 @@ import com.fjrh.karycleanfactory.ui.theme.KaryCleanTheme
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModel
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModelFactory
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
