@@ -1,17 +1,17 @@
 package com.fjrh.karycleanfactory.data.local.dao
 
 import androidx.room.*
-import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
-import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
-import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
-import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.karycleanfactory.data.local.entity.*
+
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FormulaDao {
 
+    // 🧪 FORMULAS
     @Transaction
     @Query("SELECT * FROM formulas")
-    suspend fun getAllFormulasConIngredientes(): List<FormulaConIngredientes>
+    fun getAllFormulasConIngredientes(): Flow<List<FormulaConIngredientes>>
 
     @Insert
     suspend fun insertFormula(formula: FormulaEntity): Long
@@ -37,34 +37,23 @@ interface FormulaDao {
     @Query("DELETE FROM ingredientes WHERE formulaId = :formulaId")
     suspend fun deleteIngredientesByFormulaId(formulaId: Long)
 
-    // Historial de producción
+    // 🕒 HISTORIAL DE PRODUCCIÓN
     @Insert
-    suspend fun insertarHistorial(historial: com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity)
+    suspend fun insertarHistorial(historial: HistorialProduccionEntity)
 
     @Query("SELECT * FROM historial_produccion ORDER BY fecha DESC")
-    suspend fun obtenerHistorial(): List<com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity>
+    suspend fun obtenerHistorial(): List<HistorialProduccionEntity>
 
-    // Ingredientes de inventario
-    @Insert
-    suspend fun insertarIngrediente(ingrediente: IngredienteInventarioEntity)
+    // 📦 INVENTARIO DE INGREDIENTES
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarIngredienteInventario(ingrediente: IngredienteInventarioEntity)
 
     @Update
-    suspend fun actualizarIngrediente(ingrediente: IngredienteInventarioEntity)
+    suspend fun actualizarIngredienteInventario(ingrediente: IngredienteInventarioEntity)
 
     @Delete
-    suspend fun eliminarIngrediente(ingrediente: IngredienteInventarioEntity)
+    suspend fun eliminarIngredienteInventario(ingrediente: IngredienteInventarioEntity)
 
     @Query("SELECT * FROM ingredientes_inventario ORDER BY nombre ASC")
-    suspend fun obtenerIngredientesInventario(): List<IngredienteInventarioEntity>
-
-    // 🧪 INVENTARIO DE INGREDIENTES
-
-    @Insert
-    suspend fun insertarIngredienteInventario(ingrediente: com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity)
-
-    @Query("SELECT * FROM ingredientes_inventario ORDER BY fechaIngreso DESC")
-    suspend fun obtenerInventario(): List<com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity>
-
-
-
+    fun getIngredientesInventario(): Flow<List<IngredienteInventarioEntity>>
 }

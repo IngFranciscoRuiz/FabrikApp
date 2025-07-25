@@ -1,7 +1,6 @@
 package com.fjrh.karycleanfactory.ui.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,6 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
@@ -22,57 +23,75 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
+import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModel
 import com.google.gson.Gson
+import kotlinx.coroutines.launch
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun ListaFormulasScreen(
-    viewModel: FormulaViewModel,
+    viewModel: FormulaViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val listaFormulas by viewModel.formulas.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF000000),
-                        Color(0xFF0D1A2F)
-                    )
+                    colors = listOf(Color(0xFF000000), Color(0xFF0D1A2F))
                 )
             )
             .padding(16.dp)
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(listaFormulas) { formula ->
-                FormulaAccordionCard(
-                    formula = formula,
-                    onEdit = {
-                        navController.navigate("nueva_formula")
-                    },
-                    onProduccion = {
-                        val json = Gson().toJson(formula)
-                        Log.d("DEBUG_JSON", "Enviando fórmula: $json")
-                        val encoded = Uri.encode(json)
-                        navController.navigate("produccion/$encoded")
+        // Host del Snackbar
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+
+        if (listaFormulas.isEmpty()) {
+            Text(
+                text = "No hay fórmulas registradas aún",
+                color = Color.White,
+                fontSize = 18.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+                                } else {
+                    LazyColumn {
+                        items(listaFormulas) { formula ->
+                            FormulaAccordionCard(
+                                formula = formula,
+                                onEdit = { navController.navigate("nueva_formula") },
+                                onProduccion = {
+                                    val json = Gson().toJson(formula)
+                                    val encoded = Uri.encode(json)
+                                    navController.navigate("produccion/$encoded")
+                                },
+                                onDelete = { formulaEntity ->
+                                    viewModel.eliminarFormula(formulaEntity)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Fórmula eliminada")
+                                    }
+                                }
+                            )
+                        }
                     }
-                )
-            }
-        }
-    }
+                }
+                }
 }
+
 
 @Composable
 fun FormulaAccordionCard(
     formula: FormulaConIngredientes,
     onEdit: () -> Unit,
-    onProduccion: () -> Unit
+    onProduccion: () -> Unit,
+    onDelete: (FormulaEntity) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
 
     val cardColor = Color(0xFFEAF0F6)
     val textColor = Color(0xFF1C2A3A)
@@ -83,9 +102,8 @@ fun FormulaAccordionCard(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize()
-            .clickable {
-                if (!expanded) onProduccion()
-            }
+            .padding(bottom = 12.dp)
+            .clickable { expanded = !expanded }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -109,24 +127,78 @@ fun FormulaAccordionCard(
 
             if (expanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                formula.ingredientes.forEach {
-                    Text(
-                        text = "• ${it.nombre}",
-                        fontSize = 14.sp,
-                        color = textColor
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onEdit,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C2A3A)),
-                    modifier = Modifier.align(Alignment.End)
+
+                // Tabla de ingredientes
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar")
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Editar", color = Color.White)
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Text("Ingrediente", modifier = Modifier.weight(1f), color = textColor)
+                        Text("Unidad", modifier = Modifier.weight(1f), color = textColor)
+                        Text("Cantidad", modifier = Modifier.weight(1f), color = textColor)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    formula.ingredientes.forEach {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Text(it.nombre, modifier = Modifier.weight(1f), color = textColor)
+                            Text(it.unidad, modifier = Modifier.weight(1f), color = textColor)
+                            Text(it.cantidad.toString(), modifier = Modifier.weight(1f), color = textColor)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = onProduccion,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                    ) {
+                        Text("Producción", color = Color.White)
+                    }
+                    Button(
+                        onClick = onEdit,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                    ) {
+                        Text("Editar", color = Color.White)
+                    }
+                    Button(
+                        onClick = { showDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                    ) {
+                        Text("Eliminar", color = Color.White)
+                    }
                 }
             }
         }
+    }
+
+    // Diálogo de confirmación
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Confirmar eliminación") },
+            text = {
+                Text("¿Estás seguro de que deseas eliminar la fórmula '${formula.formula.nombre}'? Esta acción no se puede deshacer.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete(formula.formula)
+                    showDialog = false
+                }) {
+                    Text("Eliminar", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

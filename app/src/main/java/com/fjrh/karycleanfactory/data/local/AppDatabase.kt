@@ -18,7 +18,7 @@ import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
         HistorialProduccionEntity::class,
         IngredienteInventarioEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

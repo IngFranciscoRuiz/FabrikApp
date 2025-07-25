@@ -1,6 +1,15 @@
 package com.fjrh.karycleanfactory.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+
+val fondoAzulGradient = Brush.verticalGradient(
+    colors = listOf(
+        Color(0xFF0D47A1), // azul oscuro
+        Color(0xFF42A5F5)  // azul claro
+    )
+)
+
 
 // Colores institucionales
 val AzulKary = Color(0xFF005BAC)

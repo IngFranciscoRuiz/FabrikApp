@@ -2,44 +2,43 @@ package com.fjrh.karycleanfactory.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjrh.karycleanfactory.data.local.dao.FormulaDao
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.karycleanfactory.data.local.repository.InventarioRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class InventarioViewModel @Inject constructor(
-    private val dao: FormulaDao
+    private val repository: InventarioRepository
 ) : ViewModel() {
 
-    private val _inventario = MutableStateFlow<List<IngredienteInventarioEntity>>(emptyList())
-    val inventario: StateFlow<List<IngredienteInventarioEntity>> = _inventario.asStateFlow()
+    val ingredientes = repository.getIngredientesInventario()
+        .map { it.sortedBy { ingrediente -> ingrediente.nombre.lowercase() } }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
-    init {
-        cargarInventario()
-    }
-
-    fun cargarInventario() {
+    fun agregarIngrediente(ingrediente: IngredienteInventarioEntity) {
         viewModelScope.launch {
-            val lista = withContext(Dispatchers.IO) {
-                dao.obtenerInventario()
-            }
-            _inventario.value = lista
+            repository.insertarIngrediente(ingrediente)
         }
     }
 
-    fun insertarIngrediente(ingrediente: IngredienteInventarioEntity) {
+    fun actualizarIngrediente(ingrediente: IngredienteInventarioEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                dao.insertarIngredienteInventario(ingrediente)
-            }
-            cargarInventario()
+            repository.actualizarIngrediente(ingrediente)
+        }
+    }
+
+    fun eliminarIngrediente(ingrediente: IngredienteInventarioEntity) {
+        viewModelScope.launch {
+            repository.eliminarIngrediente(ingrediente)
         }
     }
 }
