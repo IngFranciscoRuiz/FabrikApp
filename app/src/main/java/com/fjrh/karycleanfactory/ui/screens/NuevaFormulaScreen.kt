@@ -40,6 +40,9 @@ fun NuevaFormulaScreen(
                     snackbarHostState.showSnackbar("¡Fórmula guardada!")
                     navController.popBackStack()
                 }
+
+                FormulaViewModel.UiEvent.LoteProducido -> TODO()
+                else -> {}
             }
         }
     }

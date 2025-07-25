@@ -5,7 +5,9 @@ import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
 import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
 import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
+import com.fjrh.karycleanfactory.domain.model.StockProducto
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class FormulaRepository @Inject constructor(
@@ -34,5 +36,11 @@ class FormulaRepository @Inject constructor(
 
     suspend fun insertarFormula(formula: FormulaEntity): Long {
         return formulaDao.insertFormula(formula)
+    }
+
+    fun getStockProductos(): Flow<List<StockProducto>> {
+        return formulaDao.getStockProductos().map { list ->
+            list.map { StockProducto(nombre = it.nombreFormula, stock = it.stock) }
+        }
     }
 }

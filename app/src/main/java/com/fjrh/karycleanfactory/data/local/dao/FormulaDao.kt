@@ -56,4 +56,14 @@ interface FormulaDao {
 
     @Query("SELECT * FROM ingredientes_inventario ORDER BY nombre ASC")
     fun getIngredientesInventario(): Flow<List<IngredienteInventarioEntity>>
+
+    // STOCK DE PRODUCTOS TERMINADOS
+    @Query("SELECT nombreFormula, SUM(litrosProducidos) as stock FROM historial_produccion GROUP BY nombreFormula")
+    fun getStockProductos(): Flow<List<StockProductoQuery>>
 }
+
+// DTO para la consulta de stock
+data class StockProductoQuery(
+    val nombreFormula: String,
+    val stock: Float
+)

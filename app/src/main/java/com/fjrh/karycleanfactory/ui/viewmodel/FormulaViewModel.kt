@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// Definición local para evitar errores de símbolo no encontrado
+data class StockProducto(
+    val nombre: String,
+    val stock: Float
+)
+
 @HiltViewModel
 class FormulaViewModel @Inject constructor(
     private val repository: FormulaRepository,
@@ -23,6 +29,11 @@ class FormulaViewModel @Inject constructor(
     val formulas: StateFlow<List<FormulaConIngredientes>> =
         repository.obtenerFormulasConIngredientes()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val stockProductos: StateFlow<List<StockProducto>> =
+        repository.getStockProductos().map { list ->
+            list.map { StockProducto(nombre = it.nombre, stock = it.stock) }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _uiEvent = MutableSharedFlow<UiEvent>()
     val uiEvent: SharedFlow<UiEvent> = _uiEvent
@@ -37,6 +48,7 @@ class FormulaViewModel @Inject constructor(
     fun insertarHistorial(historial: HistorialProduccionEntity) {
         viewModelScope.launch {
             repository.insertarHistorial(historial)
+            _uiEvent.emit(UiEvent.LoteProducido)
         }
     }
 
@@ -48,5 +60,6 @@ class FormulaViewModel @Inject constructor(
 
     sealed class UiEvent {
         object FormulaGuardada : UiEvent()
+        object LoteProducido : UiEvent()
     }
 }

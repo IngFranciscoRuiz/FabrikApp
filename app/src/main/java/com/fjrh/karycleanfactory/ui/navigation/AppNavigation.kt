@@ -81,5 +81,9 @@ fun AppNavigation(navController: NavHostController) {
                 viewModel = hiltViewModel()
             )
         }
+
+        composable("stock_productos") {
+            StockProductosScreen()
+        }
     }
 }

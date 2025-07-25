@@ -63,6 +63,10 @@ fun MainMenuScreen(navController: NavController) {
             navController.navigate("inventario")
         }
 
+        MenuButton("Stock productos terminados", Icons.Default.Inventory) {
+            navController.navigate("stock_productos")
+        }
+
         MenuButton("Producción", Icons.Default.Factory) {
             navController.navigate("produccion")
         }
