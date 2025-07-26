@@ -21,6 +21,7 @@ fun AgregarIngredienteScreen(
     var nombre by remember { mutableStateOf("") }
     var unidad by remember { mutableStateOf("") }
     var cantidad by remember { mutableStateOf("") }
+    var costoPorUnidad by remember { mutableStateOf("") }
     var proveedor by remember { mutableStateOf("") }
 
     val unidades = listOf("L", "ml", "gr", "Kg", "Pzas")
@@ -101,6 +102,18 @@ fun AgregarIngredienteScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
+            value = costoPorUnidad,
+            onValueChange = {
+                if (it.matches(Regex("^\\d{0,6}(\\.\\d{0,2})?$"))) costoPorUnidad = it
+            },
+            label = { Text("Costo por unidad") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
             value = proveedor,
             onValueChange = { proveedor = it },
             label = { Text("Proveedor") },
@@ -116,13 +129,14 @@ fun AgregarIngredienteScreen(
 
         Button(
             onClick = {
-                if (nombre.isBlank() || unidad.isBlank() || cantidad.isBlank()) {
+                if (nombre.isBlank() || unidad.isBlank() || cantidad.isBlank() || costoPorUnidad.isBlank()) {
                     errorMensaje = "Todos los campos obligatorios deben estar llenos."
                 } else {
                     val ingrediente = IngredienteInventarioEntity(
                         nombre = nombre.trim(),
                         unidad = unidad,
                         cantidadDisponible = cantidad.toFloat(),
+                        costoPorUnidad = costoPorUnidad.toDouble(),
                         proveedor = proveedor.trim(),
                         fechaIngreso = System.currentTimeMillis()
                     )

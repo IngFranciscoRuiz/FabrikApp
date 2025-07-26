@@ -51,7 +51,7 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
         composable("historial") {
-            TextScreen("Historial")
+            HistorialScreen(viewModel = hiltViewModel())
         }
 
         // Producción sin fórmula

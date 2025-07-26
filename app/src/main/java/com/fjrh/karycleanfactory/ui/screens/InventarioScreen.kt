@@ -22,6 +22,12 @@ fun InventarioScreen(
     onAgregarClicked: () -> Unit
 ) {
     val ingredientes = viewModel.ingredientes.collectAsState(initial = emptyList<IngredienteInventarioEntity>()).value
+    var searchQuery by remember { mutableStateOf("") }
+    
+    val ingredientesFiltrados = ingredientes.filter { ingrediente ->
+        ingrediente.nombre.contains(searchQuery, ignoreCase = true) ||
+        ingrediente.proveedor?.contains(searchQuery, ignoreCase = true) == true
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -36,13 +42,26 @@ fun InventarioScreen(
                 .fillMaxSize()
                 .background(fondoAzulGradient)
         ) {
-            if (ingredientes.isEmpty()) {
+            // Campo de búsqueda
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar ingredientes...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+            
+            if (ingredientesFiltrados.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No hay ingredientes en inventario", color = MaterialTheme.colors.onSurface)
+                    Text(
+                        text = if (searchQuery.isBlank()) "No hay ingredientes en inventario" else "No se encontraron ingredientes",
+                        color = MaterialTheme.colors.onSurface
+                    )
                 }
             } else {
                 LazyColumn {
-                    items(ingredientes) { ingrediente ->
+                    items(ingredientesFiltrados) { ingrediente ->
                         TarjetaIngrediente(
                             ingrediente = ingrediente,
                             onDelete = { viewModel.eliminarIngrediente(ingrediente) },

@@ -37,6 +37,11 @@ fun ListaFormulasScreen(
     val listaFormulas by viewModel.formulas.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var searchQuery by remember { mutableStateOf("") }
+    
+    val formulasFiltradas = listaFormulas.filter { formula ->
+        formula.formula.nombre.contains(searchQuery, ignoreCase = true)
+    }
 
     Box(
         modifier = Modifier
@@ -51,35 +56,47 @@ fun ListaFormulasScreen(
         // Host del Snackbar
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
 
-        if (listaFormulas.isEmpty()) {
-            Text(
-                text = "No hay fórmulas registradas aún",
-                color = Color.White,
-                fontSize = 18.sp,
-                modifier = Modifier.align(Alignment.Center)
+        Column {
+            // Campo de búsqueda
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar fórmulas...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             )
-                                } else {
-                    LazyColumn {
-                        items(listaFormulas) { formula ->
-                            FormulaAccordionCard(
-                                formula = formula,
-                                onEdit = { navController.navigate("nueva_formula") },
-                                onProduccion = {
-                                    val json = Gson().toJson(formula)
-                                    val encoded = Uri.encode(json)
-                                    navController.navigate("produccion/$encoded")
-                                },
-                                onDelete = { formulaEntity ->
-                                    viewModel.eliminarFormula(formulaEntity)
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Fórmula eliminada")
-                                    }
+
+            if (formulasFiltradas.isEmpty()) {
+                Text(
+                    text = if (searchQuery.isBlank()) "No hay fórmulas registradas aún" else "No se encontraron fórmulas",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                LazyColumn {
+                    items(formulasFiltradas) { formula ->
+                        FormulaAccordionCard(
+                            formula = formula,
+                            onEdit = { navController.navigate("nueva_formula") },
+                            onProduccion = {
+                                val json = Gson().toJson(formula)
+                                val encoded = Uri.encode(json)
+                                navController.navigate("produccion/$encoded")
+                            },
+                            onDelete = { formulaEntity ->
+                                viewModel.eliminarFormula(formulaEntity)
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Fórmula eliminada")
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
-                }
+            }
+        }
+    }
 }
 
 

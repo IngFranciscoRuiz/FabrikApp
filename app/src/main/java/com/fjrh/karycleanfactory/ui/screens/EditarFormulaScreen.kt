@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
-import androidx.compose.material.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,14 +19,16 @@ import com.fjrh.karycleanfactory.domain.model.Ingrediente
 import com.fjrh.karycleanfactory.domain.model.Formula
 import com.fjrh.karycleanfactory.ui.viewmodel.FormulaViewModel
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.karycleanfactory.data.local.entity.FormulaConIngredientes
 import kotlinx.coroutines.launch
 
 @Composable
-fun NuevaFormulaScreen(
+fun EditarFormulaScreen(
     viewModel: FormulaViewModel,
-    navController: NavController
+    navController: NavController,
+    formula: FormulaConIngredientes
 ) {
-    var nombreFormula by remember { mutableStateOf("") }
+    var nombreFormula by remember { mutableStateOf(formula.formula.nombre) }
     var selectedIngrediente by remember { mutableStateOf<IngredienteInventarioEntity?>(null) }
     var cantidad by remember { mutableStateOf("") }
     var expandedIngredientes by remember { mutableStateOf(false) }
@@ -42,17 +43,28 @@ fun NuevaFormulaScreen(
     
     // Lista de unidades disponibles
     val unidades = listOf("gr", "Kg", "ml", "L", "Pzas")
+    
+    // Cargar ingredientes existentes
+    LaunchedEffect(formula) {
+        listaIngredientes.clear()
+        listaIngredientes.addAll(formula.ingredientes.map { ingredienteEntity ->
+            Ingrediente(
+                nombre = ingredienteEntity.nombre,
+                unidad = ingredienteEntity.unidad,
+                cantidad = ingredienteEntity.cantidad,
+                costoPorUnidad = ingredienteEntity.costoPorUnidad
+            )
+        })
+    }
 
     // Escuchar evento de éxito del ViewModel
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is FormulaViewModel.UiEvent.FormulaGuardada -> {
-                    snackbarHostState.showSnackbar("¡Fórmula guardada!")
+                    snackbarHostState.showSnackbar("¡Fórmula actualizada!")
                     navController.popBackStack()
                 }
-
-                FormulaViewModel.UiEvent.LoteProducido -> TODO()
                 else -> {}
             }
         }
@@ -70,7 +82,7 @@ fun NuevaFormulaScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Fórmula nueva",
+                text = "Editar Fórmula",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -292,18 +304,17 @@ fun NuevaFormulaScreen(
             Button(
                 onClick = {
                     if (nombreFormula.isNotBlank() && listaIngredientes.isNotEmpty()) {
-                        viewModel.guardarFormula(
-                            Formula(
-                                nombre = nombreFormula,
-                                ingredientes = listaIngredientes.toList()
-                            )
+                        viewModel.actualizarFormula(
+                            formulaId = formula.formula.id,
+                            nombre = nombreFormula,
+                            ingredientes = listaIngredientes.toList()
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE8DC))
             ) {
-                Text("Guardar fórmula", color = Color(0xFF944D2E))
+                Text("Actualizar fórmula", color = Color(0xFF944D2E))
             }
         }
     }
@@ -339,4 +350,4 @@ private fun calcularCostoPorUnidad(
         // Si no hay conversión definida, usar el costo original
         else -> costoOriginal
     }
-}
+} 

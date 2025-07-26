@@ -10,6 +10,7 @@ data class IngredienteInventarioEntity(
     val nombre: String,
     val unidad: String,
     val cantidadDisponible: Float,
+    val costoPorUnidad: Double = 0.0,
     val proveedor: String?,
     val fechaIngreso: Long
 )

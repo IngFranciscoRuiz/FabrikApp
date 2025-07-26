@@ -44,6 +44,9 @@ interface FormulaDao {
     @Query("SELECT * FROM historial_produccion ORDER BY fecha DESC")
     suspend fun obtenerHistorial(): List<HistorialProduccionEntity>
 
+    @Query("SELECT * FROM historial_produccion ORDER BY fecha DESC")
+    fun getHistorial(): Flow<List<HistorialProduccionEntity>>
+
     // 📦 INVENTARIO DE INGREDIENTES
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertarIngredienteInventario(ingrediente: IngredienteInventarioEntity)

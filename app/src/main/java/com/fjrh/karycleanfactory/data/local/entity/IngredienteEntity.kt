@@ -2,6 +2,7 @@ package com.fjrh.karycleanfactory.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["formulaId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("formulaId")]
 )
 data class IngredienteEntity(
     @PrimaryKey(autoGenerate = true)
@@ -21,5 +23,6 @@ data class IngredienteEntity(
     val formulaId: Long,
     val nombre: String,
     val unidad: String,
-    val cantidad: String
+    val cantidad: String,
+    val costoPorUnidad: Double = 0.0
 )

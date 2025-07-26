@@ -16,7 +16,8 @@ class AgregarFormulaUseCase @Inject constructor(
                 formulaId = 0, // Se asignará correctamente en el DAO
                 nombre = ingrediente.nombre,
                 unidad = ingrediente.unidad,
-                cantidad = ingrediente.cantidad
+                cantidad = ingrediente.cantidad,
+                costoPorUnidad = ingrediente.costoPorUnidad
             )
         }
         repository.insertarFormulaConIngredientes(

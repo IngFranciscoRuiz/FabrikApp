@@ -26,9 +26,17 @@ fun TarjetaIngrediente(
     onEdit: () -> Unit
 ) {
     val colorSemaforo = when {
-        ingrediente.cantidadDisponible < 10 -> Color(0xFFE57373) // rojo
-        ingrediente.cantidadDisponible < 50 -> Color(0xFFFFF176) // amarillo
-        else -> Color(0xFF81C784) // verde
+        ingrediente.cantidadDisponible <= 0 -> Color(0xFFE57373) // rojo - sin stock
+        ingrediente.cantidadDisponible < 10 -> Color(0xFFFFB74D) // naranja - stock bajo
+        ingrediente.cantidadDisponible < 50 -> Color(0xFFFFF176) // amarillo - stock medio
+        else -> Color(0xFF81C784) // verde - stock bueno
+    }
+    
+    val textoStock = when {
+        ingrediente.cantidadDisponible <= 0 -> "SIN STOCK"
+        ingrediente.cantidadDisponible < 10 -> "STOCK BAJO"
+        ingrediente.cantidadDisponible < 50 -> "STOCK MEDIO"
+        else -> "STOCK OK"
     }
 
     Card(
@@ -59,6 +67,11 @@ fun TarjetaIngrediente(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
+                    text = "Costo",
+                    modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
                     text = "Proveedor",
                     modifier = Modifier.weight(1f),
                     fontWeight = FontWeight.Bold
@@ -80,13 +93,24 @@ fun TarjetaIngrediente(
                 Text(text = ingrediente.nombre, modifier = Modifier.weight(1f))
                 Text(text = ingrediente.unidad, modifier = Modifier.weight(1f))
                 Text(text = ingrediente.cantidadDisponible.toString(), modifier = Modifier.weight(1f))
+                Text(text = "$${String.format("%.2f", ingrediente.costoPorUnidad)}", modifier = Modifier.weight(1f))
                 Text(text = ingrediente.proveedor.toString(), modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .background(colorSemaforo, CircleShape)
-                        .weight(0.5f)
-                )
+                Column(
+                    modifier = Modifier.weight(0.8f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .background(colorSemaforo, CircleShape)
+                    )
+                    Text(
+                        text = textoStock,
+                        style = MaterialTheme.typography.caption,
+                        color = colorSemaforo,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
