@@ -4,12 +4,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
 import com.fjrh.karycleanfactory.ui.viewmodel.InventarioViewModel
@@ -30,10 +35,17 @@ fun InventarioScreen(
     }
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { onAgregarClicked() }) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar ingrediente")
-            }
+        topBar = {
+            TopAppBar(
+                title = { Text("Inventario", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = { onAgregarClicked() }) {
+                        Icon(Icons.Default.Add, contentDescription = "Agregar ingrediente")
+                    }
+                },
+                backgroundColor = Color.Transparent,
+                elevation = 0.dp
+            )
         }
     ) { padding ->
         Column(
@@ -42,14 +54,24 @@ fun InventarioScreen(
                 .fillMaxSize()
                 .background(fondoAzulGradient)
         ) {
-            // Campo de búsqueda
+            // Campo de búsqueda mejorado
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text("Buscar ingredientes...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Buscar")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = Color.White.copy(alpha = 0.9f),
+                    focusedBorderColor = Color(0xFF2196F3),
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
             
             if (ingredientesFiltrados.isEmpty()) {

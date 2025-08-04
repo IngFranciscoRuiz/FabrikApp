@@ -85,5 +85,13 @@ fun AppNavigation(navController: NavHostController) {
         composable("stock_productos") {
             StockProductosScreen()
         }
+
+        composable("ventas") {
+            VentasScreen()
+        }
+
+        composable("balance") {
+            BalanceScreen()
+        }
     }
 }

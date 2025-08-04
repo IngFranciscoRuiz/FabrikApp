@@ -63,6 +63,43 @@ interface FormulaDao {
     // STOCK DE PRODUCTOS TERMINADOS
     @Query("SELECT nombreFormula, SUM(litrosProducidos) as stock FROM historial_produccion GROUP BY nombreFormula")
     fun getStockProductos(): Flow<List<StockProductoQuery>>
+
+    @Query("SELECT nombreFormula, SUM(litrosProducidos) as stock FROM historial_produccion GROUP BY nombreFormula")
+    suspend fun getStockProductosSync(): List<StockProductoQuery>
+
+    // VENTAS
+    @Insert
+    suspend fun insertarVenta(venta: VentaEntity)
+
+    @Query("SELECT * FROM ventas ORDER BY fecha DESC")
+    fun getVentas(): Flow<List<VentaEntity>>
+
+    @Query("SELECT SUM(litrosVendidos) FROM ventas WHERE nombreProducto = :nombreProducto")
+    suspend fun getLitrosVendidosPorProducto(nombreProducto: String): Float?
+
+    // BALANCE
+    @Insert
+    suspend fun insertarBalance(balance: BalanceEntity)
+
+    @Query("SELECT * FROM balance ORDER BY fecha DESC")
+    fun getBalance(): Flow<List<BalanceEntity>>
+
+    // UNIDADES DE MEDIDA
+    @Insert
+    suspend fun insertarUnidadMedida(unidad: UnidadMedidaEntity)
+
+    @Query("SELECT * FROM unidades_medida WHERE esActiva = 1 ORDER BY nombre ASC")
+    fun getUnidadesMedida(): Flow<List<UnidadMedidaEntity>>
+
+    @Query("SELECT * FROM unidades_medida WHERE esActiva = 1 ORDER BY nombre ASC")
+    suspend fun getUnidadesMedidaSync(): List<UnidadMedidaEntity>
+
+    @Update
+    suspend fun actualizarUnidadMedida(unidad: UnidadMedidaEntity)
+
+    @Delete
+    suspend fun eliminarUnidadMedida(unidad: UnidadMedidaEntity)
+
 }
 
 // DTO para la consulta de stock

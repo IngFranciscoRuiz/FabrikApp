@@ -6,6 +6,9 @@ import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
 import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
+import com.fjrh.karycleanfactory.data.local.entity.VentaEntity
+import com.fjrh.karycleanfactory.data.local.entity.BalanceEntity
+import com.fjrh.karycleanfactory.data.local.entity.UnidadMedidaEntity
 import com.fjrh.karycleanfactory.domain.model.StockProducto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -49,6 +52,12 @@ class FormulaRepository @Inject constructor(
         }
     }
 
+    suspend fun getStockProductosSync(): List<StockProducto> {
+        return formulaDao.getStockProductosSync().map { 
+            StockProducto(nombre = it.nombreFormula, stock = it.stock) 
+        }
+    }
+
     fun getIngredientesInventario(): Flow<List<IngredienteInventarioEntity>> {
         return formulaDao.getIngredientesInventario()
     }
@@ -60,4 +69,48 @@ class FormulaRepository @Inject constructor(
     suspend fun actualizarIngredienteInventario(ingrediente: IngredienteInventarioEntity) {
         formulaDao.actualizarIngredienteInventario(ingrediente)
     }
+
+    // VENTAS
+    fun getVentas(): Flow<List<VentaEntity>> {
+        return formulaDao.getVentas()
+    }
+
+    suspend fun insertarVenta(venta: VentaEntity) {
+        formulaDao.insertarVenta(venta)
+    }
+
+    suspend fun getLitrosVendidosPorProducto(nombreProducto: String): Float? {
+        return formulaDao.getLitrosVendidosPorProducto(nombreProducto)
+    }
+
+    // BALANCE
+    fun getBalance(): Flow<List<BalanceEntity>> {
+        return formulaDao.getBalance()
+    }
+
+    suspend fun insertarBalance(balance: BalanceEntity) {
+        formulaDao.insertarBalance(balance)
+    }
+
+    // UNIDADES DE MEDIDA
+    fun getUnidadesMedida(): Flow<List<UnidadMedidaEntity>> {
+        return formulaDao.getUnidadesMedida()
+    }
+
+    suspend fun insertarUnidadMedida(unidad: UnidadMedidaEntity) {
+        formulaDao.insertarUnidadMedida(unidad)
+    }
+
+    suspend fun getUnidadesMedidaSync(): List<UnidadMedidaEntity> {
+        return formulaDao.getUnidadesMedidaSync()
+    }
+
+    suspend fun actualizarUnidadMedida(unidad: UnidadMedidaEntity) {
+        formulaDao.actualizarUnidadMedida(unidad)
+    }
+
+    suspend fun eliminarUnidadMedida(unidad: UnidadMedidaEntity) {
+        formulaDao.eliminarUnidadMedida(unidad)
+    }
+
 }

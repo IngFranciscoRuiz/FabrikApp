@@ -5,10 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.fjrh.karycleanfactory.data.local.dao.FormulaDao
-import com.fjrh.karycleanfactory.data.local.entity.FormulaEntity
-import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
-import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
-import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.karycleanfactory.data.local.entity.*
 
 
 @Database(
@@ -17,8 +14,11 @@ import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
         IngredienteEntity::class,
         HistorialProduccionEntity::class,
         IngredienteInventarioEntity::class,
+        VentaEntity::class,
+        BalanceEntity::class,
+        UnidadMedidaEntity::class,
     ],
-    version = 5,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

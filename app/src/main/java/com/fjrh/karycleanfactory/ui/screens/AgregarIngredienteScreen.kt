@@ -1,5 +1,6 @@
 package com.fjrh.karycleanfactory.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.*
@@ -9,13 +10,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.karycleanfactory.data.local.entity.UnidadMedidaEntity
 import com.fjrh.karycleanfactory.ui.viewmodel.InventarioViewModel
+import com.fjrh.karycleanfactory.ui.viewmodel.UnidadesViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgregarIngredienteScreen(
     viewModel: InventarioViewModel = hiltViewModel(),
+    unidadesViewModel: UnidadesViewModel = hiltViewModel(),
     onGuardarExitoso: () -> Unit = {}
 ) {
     var nombre by remember { mutableStateOf("") }
@@ -24,7 +31,7 @@ fun AgregarIngredienteScreen(
     var costoPorUnidad by remember { mutableStateOf("") }
     var proveedor by remember { mutableStateOf("") }
 
-    val unidades = listOf("L", "ml", "gr", "Kg", "Pzas")
+    val unidades by unidadesViewModel.unidades.collectAsState()
 
     var expanded by remember { mutableStateOf(false) }
     var errorMensaje by remember { mutableStateOf<String?>(null) }
@@ -53,33 +60,33 @@ fun AgregarIngredienteScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Dropdown para unidad
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
+        Box {
             OutlinedTextField(
                 value = unidad,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Unidad") },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors()
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Expandir unidades"
+                        )
+                    }
+                }
             )
 
-            ExposedDropdownMenu(
+            DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                unidades.forEach { item ->
+                unidades.forEach { unidadMedida ->
                     DropdownMenuItem(
-                        text = { Text(item) },
+                        text = { Text(unidadMedida.nombre) },
                         onClick = {
-                            unidad = item
+                            unidad = unidadMedida.nombre
                             expanded = false
                         }
                     )
