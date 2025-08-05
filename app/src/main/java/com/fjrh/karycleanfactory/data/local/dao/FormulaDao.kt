@@ -2,6 +2,8 @@ package com.fjrh.karycleanfactory.data.local.dao
 
 import androidx.room.*
 import com.fjrh.karycleanfactory.data.local.entity.*
+import com.fjrh.karycleanfactory.data.local.entity.NotaEntity
+import com.fjrh.karycleanfactory.data.local.entity.PedidoProveedorEntity
 
 import kotlinx.coroutines.flow.Flow
 
@@ -99,6 +101,32 @@ interface FormulaDao {
 
     @Delete
     suspend fun eliminarUnidadMedida(unidad: UnidadMedidaEntity)
+
+    // NOTAS
+    @Insert
+    suspend fun insertarNota(nota: NotaEntity)
+
+    @Update
+    suspend fun actualizarNota(nota: NotaEntity)
+
+    @Delete
+    suspend fun eliminarNota(nota: NotaEntity)
+
+    @Query("SELECT * FROM notas ORDER BY fecha DESC")
+    fun getNotas(): Flow<List<NotaEntity>>
+
+    // PEDIDOS A PROVEEDOR
+    @Insert
+    suspend fun insertarPedidoProveedor(pedido: PedidoProveedorEntity)
+
+    @Update
+    suspend fun actualizarPedidoProveedor(pedido: PedidoProveedorEntity)
+
+    @Delete
+    suspend fun eliminarPedidoProveedor(pedido: PedidoProveedorEntity)
+
+    @Query("SELECT * FROM pedidos_proveedor ORDER BY fecha DESC")
+    fun getPedidosProveedor(): Flow<List<PedidoProveedorEntity>>
 
 }
 

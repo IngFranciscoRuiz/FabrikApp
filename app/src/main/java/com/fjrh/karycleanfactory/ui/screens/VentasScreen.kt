@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -165,14 +166,14 @@ fun AgregarVentaDialog(
                         label = { Text("Producto") },
                         readOnly = true,
                         trailingIcon = {
-                            Icon(
-                                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Expandir"
-                            )
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(
+                                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Expandir"
+                                )
+                            }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { expanded = true }
+                        modifier = Modifier.fillMaxWidth()
                     )
                     
                     DropdownMenu(

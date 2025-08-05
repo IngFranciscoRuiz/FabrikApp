@@ -9,6 +9,8 @@ import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
 import com.fjrh.karycleanfactory.data.local.entity.VentaEntity
 import com.fjrh.karycleanfactory.data.local.entity.BalanceEntity
 import com.fjrh.karycleanfactory.data.local.entity.UnidadMedidaEntity
+import com.fjrh.karycleanfactory.data.local.entity.NotaEntity
+import com.fjrh.karycleanfactory.data.local.entity.PedidoProveedorEntity
 import com.fjrh.karycleanfactory.domain.model.StockProducto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -111,6 +113,40 @@ class FormulaRepository @Inject constructor(
 
     suspend fun eliminarUnidadMedida(unidad: UnidadMedidaEntity) {
         formulaDao.eliminarUnidadMedida(unidad)
+    }
+
+    // NOTAS
+    fun getNotas(): Flow<List<NotaEntity>> {
+        return formulaDao.getNotas()
+    }
+
+    suspend fun insertarNota(nota: NotaEntity) {
+        formulaDao.insertarNota(nota)
+    }
+
+    suspend fun actualizarNota(nota: NotaEntity) {
+        formulaDao.actualizarNota(nota)
+    }
+
+    suspend fun eliminarNota(nota: NotaEntity) {
+        formulaDao.eliminarNota(nota)
+    }
+
+    // PEDIDOS A PROVEEDOR
+    fun getPedidosProveedor(): Flow<List<PedidoProveedorEntity>> {
+        return formulaDao.getPedidosProveedor()
+    }
+
+    suspend fun insertarPedidoProveedor(pedido: PedidoProveedorEntity) {
+        formulaDao.insertarPedidoProveedor(pedido)
+    }
+
+    suspend fun actualizarPedidoProveedor(pedido: PedidoProveedorEntity) {
+        formulaDao.actualizarPedidoProveedor(pedido)
+    }
+
+    suspend fun eliminarPedidoProveedor(pedido: PedidoProveedorEntity) {
+        formulaDao.eliminarPedidoProveedor(pedido)
     }
 
 }

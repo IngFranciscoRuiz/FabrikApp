@@ -93,5 +93,13 @@ fun AppNavigation(navController: NavHostController) {
         composable("balance") {
             BalanceScreen()
         }
+
+        composable("notas") {
+            NotasScreen()
+        }
+
+        composable("pedidos_proveedor") {
+            PedidosProveedorScreen()
+        }
     }
 }

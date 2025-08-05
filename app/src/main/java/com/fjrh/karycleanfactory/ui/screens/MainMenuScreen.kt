@@ -79,6 +79,7 @@ fun MainMenuScreen(navController: NavController) {
                 color = Color(0xFFFF9800),
                 items = listOf(
                     MenuItem("Ventas", Icons.Default.ShoppingCart, "Registrar ventas") { navController.navigate("ventas") },
+                    MenuItem("Pedidos Proveedor", Icons.Default.LocalShipping, "Gestionar pedidos") { navController.navigate("pedidos_proveedor") },
                     MenuItem("Balance", Icons.Default.AccountBalance, "Ver balance financiero") { navController.navigate("balance") }
                 )
             )
@@ -92,6 +93,18 @@ fun MainMenuScreen(navController: NavController) {
                 color = Color(0xFF9C27B0),
                 items = listOf(
                     MenuItem("Historial", Icons.Default.History, "Ver historial de producción") { navController.navigate("historial") }
+                )
+            )
+        }
+
+        // SECCIÓN HERRAMIENTAS
+        item {
+            WorkflowSection(
+                title = "🛠️ HERRAMIENTAS",
+                icon = Icons.Default.Note,
+                color = Color(0xFF607D8B),
+                items = listOf(
+                    MenuItem("Notas", Icons.Default.Note, "Notas y recordatorios") { navController.navigate("notas") }
                 )
             )
         }

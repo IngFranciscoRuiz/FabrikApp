@@ -8,19 +8,17 @@ import com.fjrh.karycleanfactory.data.local.entity.IngredienteEntity
 import com.fjrh.karycleanfactory.data.local.entity.IngredienteInventarioEntity
 import com.fjrh.karycleanfactory.data.local.entity.HistorialProduccionEntity
 import com.fjrh.karycleanfactory.data.local.repository.FormulaRepository
+import com.fjrh.karycleanfactory.data.local.dao.StockProductoQuery
 import com.fjrh.karycleanfactory.domain.model.Formula
 import com.fjrh.karycleanfactory.domain.model.Ingrediente
+import com.fjrh.karycleanfactory.domain.model.StockProducto
 import com.fjrh.karycleanfactory.domain.usecase.AgregarFormulaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Definición local para evitar errores de símbolo no encontrado
-data class StockProducto(
-    val nombre: String,
-    val stock: Float
-)
+
 
 @HiltViewModel
 class FormulaViewModel @Inject constructor(
@@ -33,9 +31,8 @@ class FormulaViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val stockProductos: StateFlow<List<StockProducto>> =
-        repository.getStockProductos().map { list ->
-            list.map { StockProducto(nombre = it.nombre, stock = it.stock) }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        repository.getStockProductos()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val ingredientesInventario: StateFlow<List<IngredienteInventarioEntity>> =
         repository.getIngredientesInventario()

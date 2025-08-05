@@ -6,6 +6,7 @@ import com.fjrh.karycleanfactory.data.local.entity.VentaEntity
 import com.fjrh.karycleanfactory.data.local.entity.BalanceEntity
 import com.fjrh.karycleanfactory.data.local.repository.FormulaRepository
 import com.fjrh.karycleanfactory.domain.model.StockProducto
+import com.fjrh.karycleanfactory.data.local.dao.StockProductoQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -21,9 +22,8 @@ class VentasViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val stockProductos: StateFlow<List<StockProducto>> =
-        repository.getStockProductos().map { list ->
-            list.map { StockProducto(nombre = it.nombre, stock = it.stock) }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        repository.getStockProductos()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun agregarVenta(venta: VentaEntity) {
         viewModelScope.launch {

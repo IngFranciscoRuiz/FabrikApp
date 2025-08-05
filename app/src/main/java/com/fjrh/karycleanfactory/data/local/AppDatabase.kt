@@ -17,8 +17,10 @@ import com.fjrh.karycleanfactory.data.local.entity.*
         VentaEntity::class,
         BalanceEntity::class,
         UnidadMedidaEntity::class,
+        NotaEntity::class,
+        PedidoProveedorEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

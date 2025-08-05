@@ -38,14 +38,18 @@ fun InventarioScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Inventario", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { onAgregarClicked() }) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar ingrediente")
-                    }
-                },
                 backgroundColor = Color.Transparent,
                 elevation = 0.dp
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onAgregarClicked() },
+                backgroundColor = MaterialTheme.colors.primary,
+                contentColor = Color.White
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Agregar ingrediente")
+            }
         }
     ) { padding ->
         Column(
@@ -82,12 +86,15 @@ fun InventarioScreen(
                     )
                 }
             } else {
-                LazyColumn {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     items(ingredientesFiltrados) { ingrediente ->
                         TarjetaIngrediente(
                             ingrediente = ingrediente,
                             onDelete = { viewModel.eliminarIngrediente(ingrediente) },
-                            onEdit = { /* Abrir edición más adelante */ }
+                            onEdit = { ingredienteEditado -> viewModel.actualizarIngrediente(ingredienteEditado) }
                         )
                     }
                 }
