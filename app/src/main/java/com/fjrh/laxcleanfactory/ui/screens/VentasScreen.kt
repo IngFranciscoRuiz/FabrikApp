@@ -1,0 +1,288 @@
+package com.fjrh.laxcleanfactory.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.fjrh.laxcleanfactory.data.local.entity.VentaEntity
+import com.fjrh.laxcleanfactory.ui.viewmodel.VentasViewModel
+import java.text.SimpleDateFormat
+import java.util.*
+import com.fjrh.laxcleanfactory.ui.utils.validarLitros
+import com.fjrh.laxcleanfactory.ui.utils.validarPrecio
+import com.fjrh.laxcleanfactory.ui.utils.formatearPrecio
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VentasScreen(
+    viewModel: VentasViewModel = hiltViewModel()
+) {
+    var showAddDialog by remember { mutableStateOf(false) }
+    val ventas by viewModel.ventas.collectAsState()
+    val stockProductos by viewModel.stockProductos.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ventas") },
+                actions = {
+                    IconButton(onClick = { showAddDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Agregar venta")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+            if (ventas.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No hay ventas registradas")
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(ventas) { venta ->
+                        VentaCard(venta = venta)
+                    }
+                }
+            }
+        }
+
+        if (showAddDialog) {
+            AgregarVentaDialog(
+                stockProductos = stockProductos,
+                onDismiss = { showAddDialog = false },
+                onVentaAgregada = { venta ->
+                    viewModel.agregarVenta(venta)
+                    showAddDialog = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun VentaCard(venta: VentaEntity) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = venta.nombreProducto,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "$${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("${venta.litrosVendidos} L")
+                Text("$${String.format("%.2f", venta.precioPorLitro)}/L")
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = dateFormat.format(Date(venta.fecha)),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+            
+            venta.cliente?.let { cliente ->
+                Text(
+                    text = "Cliente: $cliente",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun AgregarVentaDialog(
+    stockProductos: List<com.fjrh.laxcleanfactory.domain.model.StockProducto>,
+    onDismiss: () -> Unit,
+    onVentaAgregada: (VentaEntity) -> Unit
+) {
+    var selectedProducto by remember { mutableStateOf("") }
+    var litrosVendidos by remember { mutableStateOf("") }
+    var precioPorLitro by remember { mutableStateOf("") }
+    var cliente by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Nueva Venta") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Dropdown para seleccionar producto
+                Box {
+                    OutlinedTextField(
+                        value = selectedProducto,
+                        onValueChange = { selectedProducto = it },
+                        label = { Text("Producto") },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(
+                                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Expandir"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        stockProductos.filter { it.stock > 0 }.forEach { producto ->
+                            DropdownMenuItem(
+                                text = { Text("${producto.nombre} (${producto.stock} L disponible)") },
+                                onClick = {
+                                    selectedProducto = producto.nombre
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = litrosVendidos,
+                    onValueChange = { 
+                        if (validarLitros(it)) {
+                            litrosVendidos = it
+                        }
+                    },
+                    label = { Text("Litros vendidos") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = litrosVendidos.isNotBlank() && !validarLitros(litrosVendidos),
+                    supportingText = {
+                        if (litrosVendidos.isNotBlank() && !validarLitros(litrosVendidos)) {
+                            Text("Máximo 6 dígitos enteros y 3 decimales")
+                        }
+                    }
+                )
+
+                OutlinedTextField(
+                    value = precioPorLitro,
+                    onValueChange = { 
+                        if (validarPrecio(it)) {
+                            precioPorLitro = it
+                        }
+                    },
+                    label = { Text("Precio por litro") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = precioPorLitro.isNotBlank() && !validarPrecio(precioPorLitro),
+                    supportingText = {
+                        if (precioPorLitro.isNotBlank() && !validarPrecio(precioPorLitro)) {
+                            Text("Máximo 6 dígitos enteros y 2 decimales")
+                        }
+                    }
+                )
+
+                OutlinedTextField(
+                    value = cliente,
+                    onValueChange = { cliente = it },
+                    label = { Text("Cliente (opcional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val litros = litrosVendidos.toFloatOrNull() ?: 0f
+                    val precio = precioPorLitro.toDoubleOrNull() ?: 0.0
+                    
+                    // Validar stock disponible
+                    val productoSeleccionado = stockProductos.find { it.nombre == selectedProducto }
+                    val stockDisponible = productoSeleccionado?.stock ?: 0f
+                    
+                    if (selectedProducto.isNotBlank() && litros > 0 && precio > 0) {
+                        if (litros <= stockDisponible) {
+                            val venta = VentaEntity(
+                                nombreProducto = selectedProducto,
+                                litrosVendidos = litros,
+                                precioPorLitro = precio,
+                                fecha = System.currentTimeMillis(),
+                                cliente = cliente.takeIf { it.isNotBlank() }
+                            )
+                            onVentaAgregada(venta)
+                        } else {
+                            // Mostrar error de stock insuficiente
+                            // TODO: Implementar Snackbar o AlertDialog
+                        }
+                    }
+                },
+                enabled = selectedProducto.isNotBlank() && 
+                         litrosVendidos.isNotBlank() && 
+                         precioPorLitro.isNotBlank() &&
+                         validarLitros(litrosVendidos) &&
+                         validarPrecio(precioPorLitro)
+            ) {
+                Text("Guardar Venta")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+} 

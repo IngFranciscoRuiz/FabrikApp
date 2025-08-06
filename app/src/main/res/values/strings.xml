@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">KaryCleanFactory</string>
+    <string name="app_name">LaxCleanFactory</string>
+    <string name="inventario_insumos">Inventario de Insumos</string>
+    <string name="agregar_insumo">Agregar Insumo</string>
+    <string name="buscar_insumos">Buscar insumos...</string>
+    <string name="no_insumos">No hay insumos en inventario</string>
+    <string name="insumos_disponibles">Insumos disponibles</string>
+    <string name="insumos_anadidos">Insumos añadidos</string>
+    <string name="insumos_por_litro">Insumos por litro</string>
+    <string name="insumos_necesarios">Insumos necesarios</string>
 </resources>

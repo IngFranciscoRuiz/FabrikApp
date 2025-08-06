@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "KaryCleanFactory"
+rootProject.name = "LaxCleanFactory"
 include ':app'
