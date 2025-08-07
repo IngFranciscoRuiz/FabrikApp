@@ -20,13 +20,16 @@ import com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity
 import com.fjrh.laxcleanfactory.ui.viewmodel.InventarioViewModel
 import com.fjrh.laxcleanfactory.ui.theme.fondoLaxCleanGradient
 import com.fjrh.laxcleanfactory.ui.components.TarjetaIngrediente
+import com.fjrh.laxcleanfactory.data.local.ConfiguracionDataStore
+import com.fjrh.laxcleanfactory.domain.model.ConfiguracionStock
 
 @Composable
 fun InventarioScreen(
     viewModel: InventarioViewModel,
     onAgregarClicked: () -> Unit
 ) {
-    val ingredientes = viewModel.ingredientes.collectAsState(initial = emptyList<IngredienteInventarioEntity>()).value
+    val ingredientes by viewModel.ingredientes.collectAsState(initial = emptyList<IngredienteInventarioEntity>())
+    val configuracion by viewModel.configuracion.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     
     val ingredientesFiltrados = ingredientes.filter { ingrediente ->
@@ -47,7 +50,7 @@ fun InventarioScreen(
                 onClick = { onAgregarClicked() },
                 backgroundColor = MaterialTheme.colors.primary,
                 contentColor = Color.White,
-                modifier = Modifier.padding(bottom = 20.dp)
+                modifier = Modifier.padding(bottom = 50.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar insumo")
             }
@@ -95,7 +98,8 @@ fun InventarioScreen(
                         TarjetaIngrediente(
                             ingrediente = ingrediente,
                             onDelete = { viewModel.eliminarIngrediente(ingrediente) },
-                            onEdit = { ingredienteEditado -> viewModel.actualizarIngrediente(ingredienteEditado) }
+                            onEdit = { ingredienteEditado -> viewModel.actualizarIngrediente(ingredienteEditado) },
+                            configuracion = configuracion
                         )
                     }
                 }

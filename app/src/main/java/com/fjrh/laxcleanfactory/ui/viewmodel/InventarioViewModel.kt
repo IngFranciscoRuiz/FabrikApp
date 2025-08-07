@@ -2,43 +2,43 @@ package com.fjrh.laxcleanfactory.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity
 import com.fjrh.laxcleanfactory.data.local.repository.InventarioRepository
+import com.fjrh.laxcleanfactory.data.local.ConfiguracionDataStore
+import com.fjrh.laxcleanfactory.domain.model.ConfiguracionStock
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class InventarioViewModel @Inject constructor(
-    private val repository: InventarioRepository
+    private val repository: InventarioRepository,
+    private val configuracionDataStore: ConfiguracionDataStore
 ) : ViewModel() {
 
     val ingredientes = repository.getIngredientesInventario()
-        .map { it.sortedBy { ingrediente -> ingrediente.nombre.lowercase() } }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            emptyList()
-        )
 
-    fun agregarIngrediente(ingrediente: IngredienteInventarioEntity) {
+    val configuracion: StateFlow<ConfiguracionStock> = configuracionDataStore.configuracion.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ConfiguracionStock()
+    )
+
+    fun eliminarIngrediente(ingrediente: com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity) {
         viewModelScope.launch {
-            repository.insertarIngrediente(ingrediente)
+            repository.eliminarIngrediente(ingrediente)
         }
     }
 
-    fun actualizarIngrediente(ingrediente: IngredienteInventarioEntity) {
+    fun actualizarIngrediente(ingrediente: com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity) {
         viewModelScope.launch {
             repository.actualizarIngrediente(ingrediente)
         }
     }
 
-    fun eliminarIngrediente(ingrediente: IngredienteInventarioEntity) {
+    fun agregarIngrediente(ingrediente: com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity) {
         viewModelScope.launch {
-            repository.eliminarIngrediente(ingrediente)
+            repository.insertarIngrediente(ingrediente)
         }
     }
 }

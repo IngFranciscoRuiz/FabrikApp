@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.fjrh.laxcleanfactory.data.local.AppDatabase
 import com.fjrh.laxcleanfactory.data.local.dao.FormulaDao
+import com.fjrh.laxcleanfactory.data.local.ConfiguracionDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +24,12 @@ object AppModule {
     @Provides
     fun provideFormulaDao(db: AppDatabase): FormulaDao {
         return db.formulaDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideConfiguracionDataStore(application: Application): ConfiguracionDataStore {
+        return ConfiguracionDataStore(application)
     }
 }
 

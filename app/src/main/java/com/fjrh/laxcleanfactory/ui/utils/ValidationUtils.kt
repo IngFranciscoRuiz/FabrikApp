@@ -13,4 +13,11 @@ fun validarPrecio(texto: String): Boolean {
 
 fun formatearPrecio(texto: String): String {
     return if (texto.isNotBlank()) "$${texto}" else texto
+}
+
+fun formatearPrecioConComas(texto: String): String {
+    return if (texto.isNotBlank()) {
+        val numero = texto.toDoubleOrNull() ?: 0.0
+        "$${String.format("%,.2f", numero)}"
+    } else texto
 } 

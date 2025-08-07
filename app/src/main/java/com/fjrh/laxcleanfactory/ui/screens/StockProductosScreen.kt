@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -14,7 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.fjrh.laxcleanfactory.ui.viewmodel.FormulaViewModel
+import com.fjrh.laxcleanfactory.ui.viewmodel.StockProductosViewModel
+import com.fjrh.laxcleanfactory.domain.service.StockAlertService
+import com.fjrh.laxcleanfactory.domain.model.ConfiguracionStock
 
 // Definición local para evitar errores de símbolo no encontrado
 data class StockProducto(
@@ -25,9 +29,11 @@ data class StockProducto(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockProductosScreen(
-    viewModel: FormulaViewModel = hiltViewModel()
+    viewModel: StockProductosViewModel = hiltViewModel()
 ) {
-    val stockList = viewModel.stockProductos.collectAsState().value
+    val stockList by viewModel.stockProductos.collectAsState(initial = emptyList())
+    val configuracion by viewModel.configuracion.collectAsState()
+    val stockAlertService = remember { StockAlertService() }
 
     Scaffold(
         topBar = {
@@ -47,11 +53,8 @@ fun StockProductosScreen(
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(stockList) { stock ->
-                        val color = when {
-                            stock.stock <= 5 -> Color(0xFFD32F2F) // Rojo: bajo
-                            stock.stock <= 20 -> Color(0xFFFFA000) // Amarillo: medio
-                            else -> Color(0xFF388E3C) // Verde: suficiente
-                        }
+                        val color = stockAlertService.getStockColorProducto(stock.stock, configuracion)
+                        val stockText = stockAlertService.getStockTextProducto(stock.stock, configuracion)
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = CardDefaults.cardElevation(4.dp)
@@ -71,8 +74,8 @@ fun StockProductosScreen(
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "Stock disponible",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                                        text = stockText,
+                                        style = MaterialTheme.typography.bodySmall.copy(color = color)
                                     )
                                 }
                                 Badge(

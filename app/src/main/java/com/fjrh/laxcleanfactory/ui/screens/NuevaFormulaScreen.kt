@@ -99,7 +99,7 @@ fun NuevaFormulaScreen(
                     value = selectedIngrediente?.nombre ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Seleccionar ingrediente") },
+                    label = { Text("Seleccionar insumo") },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         IconButton(onClick = { expanded = !expanded }) {

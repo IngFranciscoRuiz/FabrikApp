@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +24,8 @@ import com.fjrh.laxcleanfactory.data.local.entity.PedidoProveedorEntity
 import com.fjrh.laxcleanfactory.ui.viewmodel.PedidosProveedorViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import com.fjrh.laxcleanfactory.ui.utils.validarPrecio
+import com.fjrh.laxcleanfactory.ui.utils.formatearPrecioConComas
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,8 +93,8 @@ fun PedidoCard(
 ) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val colorEstado = when (pedido.estado) {
-        "PAGADO" -> Color.Green
-        else -> Color(0xFFFFA000) // Naranja para pendiente
+        "PAGADO" -> Color(0xFFD32F2F) // Rojo sobrio para pagado
+        else -> Color(0xFF1976D2) // Azul sobrio para pendiente
     }
     
     Card(
@@ -154,13 +157,13 @@ fun PedidoCard(
                                 val pedidoActualizado = pedido.copy(estado = "PAGADO")
                                 onEstadoChanged(pedidoActualizado)
                             },
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowUp,
+                                imageVector = Icons.Default.Check,
                                 contentDescription = "Marcar como pagado",
-                                tint = Color.Green,
-                                modifier = Modifier.size(16.dp)
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -217,10 +220,20 @@ fun AgregarPedidoDialog(
 
                 OutlinedTextField(
                     value = monto,
-                    onValueChange = { monto = it },
+                    onValueChange = { 
+                        if (validarPrecio(it)) {
+                            monto = it
+                        }
+                    },
                     label = { Text("Monto") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = monto.isNotBlank() && !validarPrecio(monto),
+                    supportingText = {
+                        if (monto.isNotBlank() && !validarPrecio(monto)) {
+                            Text("Máximo 6 dígitos enteros y 2 decimales")
+                        }
+                    }
                 )
 
                 OutlinedTextField(
@@ -284,7 +297,8 @@ fun AgregarPedidoDialog(
                 },
                 enabled = nombreProveedor.isNotBlank() && 
                          productos.isNotBlank() && 
-                         monto.isNotBlank()
+                         monto.isNotBlank() &&
+                         validarPrecio(monto)
             ) {
                 Text("Guardar Pedido")
             }

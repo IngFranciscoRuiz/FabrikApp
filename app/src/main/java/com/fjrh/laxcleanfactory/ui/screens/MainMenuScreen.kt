@@ -24,9 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fjrh.laxcleanfactory.R
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.fjrh.laxcleanfactory.ui.viewmodel.MainMenuViewModel
 
 @Composable
-fun MainMenuScreen(navController: NavController) {
+fun MainMenuScreen(
+    navController: NavController,
+    viewModel: MainMenuViewModel = hiltViewModel()
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -43,7 +48,7 @@ fun MainMenuScreen(navController: NavController) {
     ) {
         // HEADER CON MÉTRICAS
         item {
-            HeaderSection()
+            HeaderSection(viewModel)
         }
 
         // SECCIÓN PREPARACIÓN
@@ -106,7 +111,8 @@ fun MainMenuScreen(navController: NavController) {
                 icon = Icons.Default.Note,
                 color = Color(0xFF607D8B),
                 items = listOf(
-                    MenuItem("Notas", Icons.Default.Note, "Notas y recordatorios") { navController.navigate("notas") }
+                    MenuItem("Notas", Icons.Default.Note, "Notas y recordatorios") { navController.navigate("notas") },
+                    MenuItem("Configuración", Icons.Default.Settings, "Configurar umbrales de stock") { navController.navigate("configuracion") }
                 )
             )
         }
@@ -119,7 +125,7 @@ fun MainMenuScreen(navController: NavController) {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(viewModel: MainMenuViewModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,14 +160,14 @@ fun HeaderSection() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Métricas rápidas (placeholder - se pueden conectar con datos reales)
+        // Métricas rápidas con datos reales
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            MetricCard("Ventas Hoy", "$1,250", Color(0xFF4CAF50))
-            MetricCard("Stock Bajo", "3 items", Color(0xFFFF5722))
-            MetricCard("Producción", "85%", Color(0xFF2196F3))
+            MetricCard("Ventas Hoy", viewModel.formatearVentasHoy(), Color(0xFF4CAF50))
+            MetricCard("Stock Bajo", viewModel.formatearStockBajo(), Color(0xFFFF5722))
+            MetricCard("Producción", viewModel.formatearProduccionHoy(), Color(0xFF2196F3))
         }
     }
 }

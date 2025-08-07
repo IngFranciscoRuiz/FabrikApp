@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.fjrh.laxcleanfactory.ui.screens.*
 import com.fjrh.laxcleanfactory.data.local.entity.FormulaConIngredientes
+import com.fjrh.laxcleanfactory.data.local.ConfiguracionDataStore
 import com.google.gson.Gson
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -100,6 +101,10 @@ fun AppNavigation(navController: NavHostController) {
 
         composable("pedidos_proveedor") {
             PedidosProveedorScreen()
+        }
+
+        composable("configuracion") {
+            ConfiguracionScreen(navController)
         }
     }
 }

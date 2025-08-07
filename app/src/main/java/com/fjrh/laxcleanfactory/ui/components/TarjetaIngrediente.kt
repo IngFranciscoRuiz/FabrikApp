@@ -19,28 +19,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.fjrh.laxcleanfactory.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.laxcleanfactory.domain.model.ConfiguracionStock
+import com.fjrh.laxcleanfactory.domain.service.StockAlertService
 
 @Composable
 fun TarjetaIngrediente(
     ingrediente: IngredienteInventarioEntity,
     onDelete: () -> Unit,
-    onEdit: (IngredienteInventarioEntity) -> Unit
+    onEdit: (IngredienteInventarioEntity) -> Unit,
+    configuracion: ConfiguracionStock? = null
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var editedIngrediente by remember { mutableStateOf(ingrediente) }
     
-    val colorSemaforo = when {
-        ingrediente.cantidadDisponible <= 0 -> Color(0xFFE57373) // rojo - sin stock
-        ingrediente.cantidadDisponible < 10 -> Color(0xFFFFB74D) // naranja - stock bajo
-        ingrediente.cantidadDisponible < 50 -> Color(0xFFFFF176) // amarillo - stock medio
-        else -> Color(0xFF81C784) // verde - stock bueno
+    val stockAlertService = remember { StockAlertService() }
+    
+    val colorSemaforo = if (configuracion != null) {
+        stockAlertService.getStockColorInsumo(ingrediente.cantidadDisponible, configuracion)
+    } else {
+        when {
+            ingrediente.cantidadDisponible <= 0 -> Color(0xFFE57373) // rojo - sin stock
+            ingrediente.cantidadDisponible < 10 -> Color(0xFFFFB74D) // naranja - stock bajo
+            ingrediente.cantidadDisponible < 50 -> Color(0xFFFFF176) // amarillo - stock medio
+            else -> Color(0xFF81C784) // verde - stock bueno
+        }
     }
     
-    val textoStock = when {
-        ingrediente.cantidadDisponible <= 0 -> "SIN STOCK"
-        ingrediente.cantidadDisponible < 10 -> "STOCK BAJO"
-        ingrediente.cantidadDisponible < 50 -> "STOCK MEDIO"
-        else -> "STOCK OK"
+    val textoStock = if (configuracion != null) {
+        stockAlertService.getStockTextInsumo(ingrediente.cantidadDisponible, configuracion)
+    } else {
+        when {
+            ingrediente.cantidadDisponible <= 0 -> "SIN STOCK"
+            ingrediente.cantidadDisponible < 10 -> "STOCK BAJO"
+            ingrediente.cantidadDisponible < 50 -> "STOCK MEDIO"
+            else -> "STOCK OK"
+        }
     }
 
     Card(
