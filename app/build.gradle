@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace 'com.fjrh.laxcleanfactory'
+    namespace 'com.fjrh.FabrikApp'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.fjrh.laxcleanfactory"
+        applicationId "com.fjrh.FabrikApp"
         minSdk 24
         targetSdk 35
         versionCode 1

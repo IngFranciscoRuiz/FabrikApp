@@ -1,0 +1,100 @@
+package com.fjrh.FabrikApp.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes
+import com.fjrh.FabrikApp.data.local.entity.FormulaEntity
+import com.fjrh.FabrikApp.data.local.entity.IngredienteEntity
+import com.fjrh.FabrikApp.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.FabrikApp.data.local.entity.HistorialProduccionEntity
+import com.fjrh.FabrikApp.data.local.repository.FormulaRepository
+import com.fjrh.FabrikApp.data.local.dao.StockProductoQuery
+import com.fjrh.FabrikApp.domain.model.Formula
+import com.fjrh.FabrikApp.domain.model.Ingrediente
+import com.fjrh.FabrikApp.domain.model.StockProducto
+import com.fjrh.FabrikApp.domain.usecase.AgregarFormulaUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+
+
+@HiltViewModel
+class FormulaViewModel @Inject constructor(
+    private val repository: FormulaRepository,
+    private val agregarFormulaUseCase: AgregarFormulaUseCase
+) : ViewModel() {
+
+    val formulas: StateFlow<List<FormulaConIngredientes>> =
+        repository.obtenerFormulasConIngredientes()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val stockProductos: StateFlow<List<StockProducto>> =
+        repository.getStockProductos()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val ingredientesInventario: StateFlow<List<IngredienteInventarioEntity>> =
+        repository.getIngredientesInventario()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val historial: StateFlow<List<HistorialProduccionEntity>> =
+        repository.getHistorial()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _uiEvent = MutableSharedFlow<UiEvent>()
+    val uiEvent: SharedFlow<UiEvent> = _uiEvent
+
+    fun guardarFormula(formula: Formula) {
+        viewModelScope.launch {
+            agregarFormulaUseCase(formula)
+            _uiEvent.emit(UiEvent.FormulaGuardada)
+        }
+    }
+
+    fun insertarHistorial(historial: HistorialProduccionEntity) {
+        viewModelScope.launch {
+            repository.insertarHistorial(historial)
+            _uiEvent.emit(UiEvent.LoteProducido)
+        }
+    }
+
+    fun eliminarFormula(formula: FormulaEntity) {
+        viewModelScope.launch {
+            repository.eliminarFormulaConIngredientes(formula)
+        }
+    }
+
+    fun actualizarFormula(formulaId: Long, nombre: String, ingredientes: List<Ingrediente>) {
+        viewModelScope.launch {
+            // Primero eliminar ingredientes existentes
+            repository.eliminarIngredientesByFormulaId(formulaId)
+            
+            // Luego insertar los nuevos ingredientes
+            val formulaEntity = FormulaEntity(id = formulaId, nombre = nombre)
+            val ingredientesEntities = ingredientes.map { ingrediente ->
+                IngredienteEntity(
+                    formulaId = formulaId,
+                    nombre = ingrediente.nombre,
+                    unidad = ingrediente.unidad,
+                    cantidad = ingrediente.cantidad,
+                    costoPorUnidad = ingrediente.costoPorUnidad
+                )
+            }
+            
+            repository.insertarFormulaConIngredientes(formulaEntity, ingredientesEntities)
+            _uiEvent.emit(UiEvent.FormulaGuardada)
+        }
+    }
+
+    fun actualizarIngredienteInventario(ingrediente: IngredienteInventarioEntity) {
+        viewModelScope.launch {
+            repository.actualizarIngredienteInventario(ingrediente)
+        }
+    }
+
+    sealed class UiEvent {
+        object FormulaGuardada : UiEvent()
+        object LoteProducido : UiEvent()
+    }
+}

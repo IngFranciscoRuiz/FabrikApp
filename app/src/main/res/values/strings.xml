@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LaxCleanFactory</string>
+    <string name="app_name">FabrikApp</string>
     <string name="inventario_insumos">Inventario de Insumos</string>
     <string name="agregar_insumo">Agregar Insumo</string>
     <string name="buscar_insumos">Buscar insumos...</string>
