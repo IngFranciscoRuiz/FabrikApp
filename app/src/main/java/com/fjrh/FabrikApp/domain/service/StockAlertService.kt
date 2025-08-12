@@ -58,6 +58,4 @@ class StockAlertService @Inject constructor() {
             StockLevel.BAJO -> "Stock Bajo"
         }
     }
-    
-
 } 

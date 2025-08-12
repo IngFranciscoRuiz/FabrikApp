@@ -30,6 +30,7 @@ fun InventarioScreen(
 ) {
     val ingredientes by viewModel.ingredientes.collectAsState(initial = emptyList<IngredienteInventarioEntity>())
     val configuracion by viewModel.configuracion.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     
     val ingredientesFiltrados = ingredientes.filter { ingrediente ->
@@ -82,7 +83,13 @@ fun InventarioScreen(
                 )
             )
             
-            if (ingredientesFiltrados.isEmpty()) {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colors.primary
+                    )
+                }
+            } else if (ingredientesFiltrados.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = if (searchQuery.isBlank()) "No hay insumos en inventario" else "No se encontraron insumos",

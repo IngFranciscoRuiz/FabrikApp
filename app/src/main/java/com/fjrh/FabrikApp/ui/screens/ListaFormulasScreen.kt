@@ -80,8 +80,30 @@ fun ListaFormulasScreen(
                         FormulaAccordionCard(
                             formula = formula,
                             onEdit = { 
-                                val json = Gson().toJson(formula)
+                                println("DEBUG: === INICIO EDICIÓN FÓRMULA ===")
+                                println("DEBUG: Fórmula original - ID: ${formula.formula.id}, Nombre: ${formula.formula.nombre}")
+                                println("DEBUG: Cantidad de ingredientes original: ${formula.ingredientes.size}")
+                                formula.ingredientes.forEach { ingrediente ->
+                                    println("DEBUG: Ingrediente original: ${ingrediente.nombre} - ${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costoPorUnidad}")
+                                }
+                                
+                                val formulaSerializable = formula.toSerializable()
+                                println("DEBUG: Fórmula serializable - ID: ${formulaSerializable.id}, Nombre: ${formulaSerializable.nombre}")
+                                println("DEBUG: Cantidad de ingredientes serializable: ${formulaSerializable.ingredientes.size}")
+                                
+                                val json = Gson().toJson(formulaSerializable)
                                 val encoded = Uri.encode(json)
+                                println("DEBUG: Longitud del JSON: ${json.length}")
+                                println("DEBUG: Longitud del JSON codificado: ${encoded.length}")
+                                println("DEBUG: JSON generado: $json")
+                                println("DEBUG: JSON codificado: $encoded")
+                                println("DEBUG: === FIN EDICIÓN FÓRMULA ===")
+                                
+                                // Verificar si el JSON es demasiado largo
+                                if (encoded.length > 1000) {
+                                    println("DEBUG: ⚠️ JSON muy largo, puede causar problemas")
+                                }
+                                
                                 navController.navigate("editar_formula/$encoded")
                             },
                             onProduccion = {
@@ -183,7 +205,10 @@ fun FormulaAccordionCard(
                         Text("Producción", color = Color.White)
                     }
                     Button(
-                        onClick = onEdit,
+                        onClick = {
+                            println("DEBUG: Botón Editar presionado para fórmula: ${formula.formula.nombre}")
+                            onEdit()
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
                     ) {
                         Text("Editar", color = Color.White)

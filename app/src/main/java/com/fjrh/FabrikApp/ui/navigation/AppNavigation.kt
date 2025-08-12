@@ -9,6 +9,9 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.fjrh.FabrikApp.ui.screens.*
 import com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes
+import com.fjrh.FabrikApp.data.local.entity.FormulaSerializable
+import com.fjrh.FabrikApp.data.local.entity.FormulaEntity
+import com.fjrh.FabrikApp.data.local.entity.IngredienteEntity
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import com.google.gson.Gson
 import java.net.URLDecoder
@@ -34,6 +37,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("nueva_formula") {
+            println("DEBUG: === NAVEGACIÓN A nueva_formula ===")
             NuevaFormulaScreen(
                 navController = navController,
                 viewModel = hiltViewModel()
@@ -44,11 +48,57 @@ fun AppNavigation(navController: NavHostController) {
             route = "editar_formula/{formulaJson}",
             arguments = listOf(navArgument("formulaJson") { type = NavType.StringType })
         ) { backStackEntry ->
+            println("DEBUG: === NAVEGACIÓN A editar_formula ===")
+            println("DEBUG: Ruta actual: ${backStackEntry.destination.route}")
+            println("DEBUG: Argumentos: ${backStackEntry.arguments}")
             val json = backStackEntry.arguments?.getString("formulaJson")
+            println("DEBUG: Recibido JSON en navegación: $json")
+            
             val formula = try {
-                val decoded = URLDecoder.decode(json, StandardCharsets.UTF_8.toString())
-                Gson().fromJson(decoded, FormulaConIngredientes::class.java)
+                println("DEBUG: === INICIO DECODIFICACIÓN ===")
+                println("DEBUG: JSON recibido: $json")
+                
+                // El JSON ya viene decodificado desde la navegación, no necesitamos URLDecoder
+                val formulaSerializable = Gson().fromJson(json, FormulaSerializable::class.java)
+                println("DEBUG: Fórmula serializable parseada: ${formulaSerializable?.nombre}")
+                println("DEBUG: Cantidad de ingredientes: ${formulaSerializable?.ingredientes?.size}")
+                
+                // Convertir de vuelta a FormulaConIngredientes
+                val formulaObj = if (formulaSerializable != null) {
+                    val ingredientes = formulaSerializable.ingredientes.map { ingredienteSerializable ->
+                        IngredienteEntity(
+                            formulaId = formulaSerializable.id,
+                            nombre = ingredienteSerializable.nombre,
+                            unidad = ingredienteSerializable.unidad,
+                            cantidad = ingredienteSerializable.cantidad,
+                            costoPorUnidad = ingredienteSerializable.costoPorUnidad
+                        )
+                    }
+                    
+                    val result = FormulaConIngredientes(
+                        formula = FormulaEntity(
+                            id = formulaSerializable.id,
+                            nombre = formulaSerializable.nombre
+                        ),
+                        ingredientes = ingredientes
+                    )
+                    
+                    println("DEBUG: Fórmula reconstruida - ID: ${result.formula.id}, Nombre: ${result.formula.nombre}")
+                    println("DEBUG: Ingredientes reconstruidos: ${result.ingredientes.size}")
+                    result.ingredientes.forEach { ingrediente ->
+                        println("DEBUG: Ingrediente reconstruido: ${ingrediente.nombre} - ${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costoPorUnidad}")
+                    }
+                    
+                    result
+                } else {
+                    println("DEBUG: formulaSerializable es null")
+                    null
+                }
+                
+                println("DEBUG: === FIN DECODIFICACIÓN ===")
+                formulaObj
             } catch (e: Exception) {
+                println("DEBUG: Error al parsear fórmula: ${e.message}")
                 e.printStackTrace()
                 null
             }

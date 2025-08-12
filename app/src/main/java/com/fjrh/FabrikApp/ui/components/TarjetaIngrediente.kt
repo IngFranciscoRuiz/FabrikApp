@@ -219,15 +219,22 @@ fun TarjetaIngrediente(
                         modifier = Modifier.weight(0.3f)
                     )
                     if (isEditing) {
+                        var cantidadText by remember { mutableStateOf(editedIngrediente.cantidadDisponible.toString()) }
+                        
                         OutlinedTextField(
-                            value = editedIngrediente.cantidadDisponible.toString(),
-                            onValueChange = { 
-                                val cantidad = it.toFloatOrNull() ?: 0f
-                                editedIngrediente = editedIngrediente.copy(cantidadDisponible = cantidad)
+                            value = cantidadText,
+                            onValueChange = { newValue ->
+                                // Solo permitir números y un punto decimal
+                                if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                    cantidadText = newValue
+                                    val cantidad = newValue.toFloatOrNull() ?: 0f
+                                    editedIngrediente = editedIngrediente.copy(cantidadDisponible = cantidad)
+                                }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2
+                            textStyle = MaterialTheme.typography.body2,
+                            singleLine = true
                         )
                     } else {
                         Text(
@@ -251,15 +258,22 @@ fun TarjetaIngrediente(
                         modifier = Modifier.weight(0.3f)
                     )
                     if (isEditing) {
+                        var costoText by remember { mutableStateOf(editedIngrediente.costoPorUnidad.toString()) }
+                        
                         OutlinedTextField(
-                            value = editedIngrediente.costoPorUnidad.toString(),
-                            onValueChange = { 
-                                val costo = it.toDoubleOrNull() ?: 0.0
-                                editedIngrediente = editedIngrediente.copy(costoPorUnidad = costo)
+                            value = costoText,
+                            onValueChange = { newValue ->
+                                // Solo permitir números y un punto decimal
+                                if (newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                    costoText = newValue
+                                    val costo = newValue.toDoubleOrNull() ?: 0.0
+                                    editedIngrediente = editedIngrediente.copy(costoPorUnidad = costo)
+                                }
                             },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2
+                            textStyle = MaterialTheme.typography.body2,
+                            singleLine = true
                         )
                     } else {
                         Text(

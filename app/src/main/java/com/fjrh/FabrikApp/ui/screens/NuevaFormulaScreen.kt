@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.Ingrediente
 import com.fjrh.FabrikApp.domain.model.Formula
-import com.fjrh.FabrikApp.ui.viewmodel.FormulaViewModel
 import com.fjrh.FabrikApp.data.local.entity.IngredienteInventarioEntity
+import com.fjrh.FabrikApp.ui.viewmodel.FormulaViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,9 +46,19 @@ fun NuevaFormulaScreen(
     
     // Pre-llenar campos si se está editando una fórmula
     LaunchedEffect(formulaParaEditar) {
+        println("DEBUG: === INICIO LaunchedEffect formulaParaEditar ===")
+        println("DEBUG: formulaParaEditar es null: ${formulaParaEditar == null}")
+        
         formulaParaEditar?.let { formula ->
+            println("DEBUG: Editando fórmula: ${formula.formula.nombre}")
+            println("DEBUG: ID de la fórmula: ${formula.formula.id}")
+            println("DEBUG: Cantidad de ingredientes: ${formula.ingredientes.size}")
+            formula.ingredientes.forEach { ingrediente ->
+                println("DEBUG: Ingrediente: ${ingrediente.nombre} - ${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costoPorUnidad}")
+            }
+            
             nombreFormula = formula.formula.nombre
-            // Convertir ingredientes de la entidad al modelo de dominio
+            // Limpiar y cargar ingredientes solo una vez
             listaIngredientes.clear()
             listaIngredientes.addAll(
                 formula.ingredientes.map { ingredienteEntity ->
@@ -60,7 +70,14 @@ fun NuevaFormulaScreen(
                     )
                 }
             )
+            println("DEBUG: Lista de ingredientes después de cargar: ${listaIngredientes.size}")
+        } ?: run {
+            println("DEBUG: formulaParaEditar es null, no se está editando")
+            // Limpiar campos si no se está editando
+            nombreFormula = ""
+            listaIngredientes.clear()
         }
+        println("DEBUG: === FIN LaunchedEffect formulaParaEditar ===")
     }
 
     // Escuchar evento de éxito del ViewModel
@@ -108,8 +125,9 @@ fun NuevaFormulaScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            // Dropdown para seleccionar ingrediente del inventario
+            // Selector de ingrediente
             var expanded by remember { mutableStateOf(false) }
+            val ingredientesInventario by viewModel.ingredientesInventario.collectAsState()
             
             // Debug: mostrar cantidad de ingredientes
             Text("Insumos disponibles: ${ingredientesInventario.size}")
@@ -279,11 +297,29 @@ fun NuevaFormulaScreen(
                 }
 
                 // Mostrar costo total
-                val costoTotal = listaIngredientes.sumOf { 
-                    it.cantidad.toDoubleOrNull()?.let { cantidad -> 
-                        cantidad * it.costoPorUnidad 
-                    } ?: 0.0 
+                val costoTotal = listaIngredientes.sumOf { ingrediente -> 
+                    val cantidad = ingrediente.cantidad.toDoubleOrNull() ?: 0.0
+                    
+                    // Buscar el ingrediente en inventario para obtener el costo original y unidad
+                    val ingredienteInventario = ingredientesInventario.find { it.nombre == ingrediente.nombre }
+                    val costoOriginal = ingredienteInventario?.costoPorUnidad ?: ingrediente.costoPorUnidad
+                    val unidadOriginal = ingredienteInventario?.unidad ?: ingrediente.unidad
+                    
+                    // Calcular el costo por unidad en la unidad de la fórmula
+                    val costoPorUnidadConvertido = if (ingredienteInventario != null) {
+                        calcularCostoPorUnidad(ingredienteInventario, ingrediente.unidad)
+                    } else {
+                        ingrediente.costoPorUnidad
+                    }
+                    
+                    val costoIngrediente = cantidad * costoPorUnidadConvertido
+                    
+                    println("DEBUG: Cálculo costo - ${ingrediente.nombre}: ${cantidad} ${ingrediente.unidad} × $${costoPorUnidadConvertido} (original: $${costoOriginal}/${unidadOriginal}) = $${costoIngrediente}")
+                    
+                    costoIngrediente
                 }
+                
+                println("DEBUG: Costo total de la fórmula: $${costoTotal}")
                 
                 if (listaIngredientes.isNotEmpty()) {
                     Card(

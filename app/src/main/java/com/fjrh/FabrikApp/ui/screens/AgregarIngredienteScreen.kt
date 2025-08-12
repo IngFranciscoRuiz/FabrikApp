@@ -139,21 +139,28 @@ fun AgregarIngredienteScreen(
                 if (nombre.isBlank() || unidad.isBlank() || cantidad.isBlank() || costoPorUnidad.isBlank()) {
                     errorMensaje = "Todos los campos obligatorios deben estar llenos."
                 } else {
-                    val ingrediente = IngredienteInventarioEntity(
-                        nombre = nombre.trim(),
-                        unidad = unidad,
-                        cantidadDisponible = cantidad.toFloat(),
-                        costoPorUnidad = costoPorUnidad.toDouble(),
-                        proveedor = proveedor.trim(),
-                        fechaIngreso = System.currentTimeMillis()
-                    )
+                    try {
+                        val ingrediente = IngredienteInventarioEntity(
+                            nombre = nombre.trim(),
+                            unidad = unidad,
+                            cantidadDisponible = cantidad.toFloat(),
+                            costoPorUnidad = costoPorUnidad.toDouble(),
+                            proveedor = proveedor.trim(),
+                            fechaIngreso = System.currentTimeMillis()
+                        )
 
-                    viewModel.agregarIngrediente(ingrediente)
-                    errorMensaje = null
-                    onGuardarExitoso()
+                        viewModel.agregarIngrediente(ingrediente)
+                        errorMensaje = null
+                        onGuardarExitoso()
+                    } catch (e: NumberFormatException) {
+                        errorMensaje = "Error en el formato de números. Verifica cantidad y costo."
+                    } catch (e: Exception) {
+                        errorMensaje = "Error al guardar: ${e.message}"
+                    }
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = nombre.isNotBlank() && unidad.isNotBlank() && cantidad.isNotBlank() && costoPorUnidad.isNotBlank()
         ) {
             Text("Guardar")
         }

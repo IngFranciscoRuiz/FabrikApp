@@ -25,8 +25,8 @@ class ConfiguracionDataStore @Inject constructor(
         private val STOCK_BAJO_INSUMOS = floatPreferencesKey("stock_bajo_insumos")
         
         // Alertas
-        private val ALERTAS_STOCK_BAJO = booleanPreferencesKey("alertas_stock_bajo")
-        private val ALERTAS_STOCK_ALTO = booleanPreferencesKey("alertas_stock_alto")
+        // private val ALERTAS_STOCK_BAJO = booleanPreferencesKey("alertas_stock_bajo")
+        // private val ALERTAS_STOCK_ALTO = booleanPreferencesKey("alertas_stock_alto")
         
         // Backup
         private val BACKUP_AUTOMATICO = booleanPreferencesKey("backup_automatico")
@@ -46,8 +46,8 @@ class ConfiguracionDataStore @Inject constructor(
             stockAltoInsumos = preferences[STOCK_ALTO_INSUMOS] ?: 200f,
             stockMedioInsumos = preferences[STOCK_MEDIO_INSUMOS] ?: 100f,
             stockBajoInsumos = preferences[STOCK_BAJO_INSUMOS] ?: 50f,
-            alertasStockBajo = preferences[ALERTAS_STOCK_BAJO] ?: true,
-            alertasStockAlto = preferences[ALERTAS_STOCK_ALTO] ?: false,
+            // alertasStockBajo = preferences[ALERTAS_STOCK_BAJO] ?: true,
+            // alertasStockAlto = preferences[ALERTAS_STOCK_ALTO] ?: false,
             backupAutomatico = preferences[BACKUP_AUTOMATICO] ?: true,
             frecuenciaBackup = preferences[FRECUENCIA_BACKUP] ?: 7,
             temaOscuro = preferences[TEMA_OSCURO] ?: false
@@ -65,8 +65,8 @@ class ConfiguracionDataStore @Inject constructor(
             preferences[STOCK_BAJO_INSUMOS] = config.stockBajoInsumos
             
             // Alertas
-            preferences[ALERTAS_STOCK_BAJO] = config.alertasStockBajo
-            preferences[ALERTAS_STOCK_ALTO] = config.alertasStockAlto
+            // preferences[ALERTAS_STOCK_BAJO] = config.alertasStockBajo
+            // preferences[ALERTAS_STOCK_ALTO] = config.alertasStockAlto
             
             // Backup
             preferences[BACKUP_AUTOMATICO] = config.backupAutomatico

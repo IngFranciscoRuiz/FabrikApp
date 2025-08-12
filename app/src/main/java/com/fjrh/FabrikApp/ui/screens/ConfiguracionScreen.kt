@@ -48,15 +48,15 @@ fun ConfiguracionScreen(
 ) {
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
-    var stockBajoProductos by remember { mutableStateOf("") }
+        var stockBajoProductos by remember { mutableStateOf("") }
     var stockAltoInsumos by remember { mutableStateOf("") }
     var stockMedioInsumos by remember { mutableStateOf("") }
     var stockBajoInsumos by remember { mutableStateOf("") }
     
     // Configuraciones adicionales
     var temaOscuro by remember { mutableStateOf(false) }
-    var alertasStockBajo by remember { mutableStateOf(true) }
-    var alertasStockAlto by remember { mutableStateOf(false) }
+    // var alertasStockBajo by remember { mutableStateOf(true) }
+    // var alertasStockAlto by remember { mutableStateOf(false) }
     var backupAutomatico by remember { mutableStateOf(true) }
     var frecuenciaBackup by remember { mutableStateOf("7") }
     
@@ -73,15 +73,15 @@ fun ConfiguracionScreen(
 
     // Cargar configuración inicial
     LaunchedEffect(Unit) {
-        viewModel.configuracion.collect { config ->
-            stockAltoProductos = config.stockAltoProductos.toString()
-            stockMedioProductos = config.stockMedioProductos.toString()
-            stockBajoProductos = config.stockBajoProductos.toString()
-            stockAltoInsumos = config.stockAltoInsumos.toString()
-            stockMedioInsumos = config.stockMedioInsumos.toString()
-            stockBajoInsumos = config.stockBajoInsumos.toString()
-            alertasStockBajo = config.alertasStockBajo
-            alertasStockAlto = config.alertasStockAlto
+                        viewModel.configuracion.collect { config ->
+                    stockAltoProductos = config.stockAltoProductos.toString()
+                    stockMedioProductos = config.stockMedioProductos.toString()
+                    stockBajoProductos = config.stockBajoProductos.toString()
+                    stockAltoInsumos = config.stockAltoInsumos.toString()
+                    stockMedioInsumos = config.stockMedioInsumos.toString()
+                    stockBajoInsumos = config.stockBajoInsumos.toString()
+            // alertasStockBajo = config.alertasStockBajo
+            // alertasStockAlto = config.alertasStockAlto
             backupAutomatico = config.backupAutomatico
             frecuenciaBackup = config.frecuenciaBackup.toString()
             temaOscuro = config.temaOscuro
@@ -97,8 +97,8 @@ fun ConfiguracionScreen(
             stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
             stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
             stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
-            alertasStockBajo = alertasStockBajo,
-            alertasStockAlto = alertasStockAlto,
+            // alertasStockBajo = alertasStockBajo,
+            // alertasStockAlto = alertasStockAlto,
             backupAutomatico = backupAutomatico,
             frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
             temaOscuro = temaOscuro
@@ -162,12 +162,12 @@ fun ConfiguracionScreen(
                 onStockBajoInsumosChange = { stockBajoInsumos = it }
             )
             
-            ConfiguracionAlertasSection(
-                alertasStockBajo = alertasStockBajo,
-                alertasStockAlto = alertasStockAlto,
-                onAlertasStockBajoChange = { alertasStockBajo = it },
-                onAlertasStockAltoChange = { alertasStockAlto = it }
-            )
+            // ConfiguracionAlertasSection(
+            //     alertasStockBajo = alertasStockBajo,
+            //     alertasStockAlto = alertasStockAlto,
+            //     onAlertasStockBajoChange = { alertasStockBajo = it },
+            //     onAlertasStockAltoChange = { alertasStockAlto = it }
+            // )
             
             ConfiguracionBackupSection(
                 backupAutomatico = backupAutomatico,
@@ -195,7 +195,7 @@ fun ConfiguracionScreen(
             // Indicador de carga
             if (isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
@@ -274,8 +274,8 @@ fun ConfiguracionScreen(
                         stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
                         stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
                         stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
-                        alertasStockBajo = alertasStockBajo,
-                        alertasStockAlto = alertasStockAlto,
+                        // alertasStockBajo = alertasStockBajo,
+                        // alertasStockAlto = alertasStockAlto,
                         backupAutomatico = backupAutomatico,
                         frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
                         temaOscuro = temaOscuro
@@ -332,15 +332,15 @@ fun ConfiguracionScreen(
 
 @Composable
 fun ConfiguracionHeader() {
-    Card(
+            Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
-    ) {
-        Column(
+            ) {
+                Column(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -353,7 +353,7 @@ fun ConfiguracionHeader() {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            Text(
+                    Text(
                 text = "Configuración del Sistema",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
@@ -433,7 +433,7 @@ fun ConfiguracionStockSection(
             )
             
             ConfiguracionTextField(
-                value = stockMedioInsumos,
+                        value = stockMedioInsumos,
                 onValueChange = { if (validarPrecio(it)) onStockMedioInsumosChange(it) },
                 label = "Stock Medio (kg)",
                 icon = Icons.Default.TrendingFlat,
@@ -451,34 +451,34 @@ fun ConfiguracionStockSection(
     }
 }
 
-@Composable
-fun ConfiguracionAlertasSection(
-    alertasStockBajo: Boolean,
-    alertasStockAlto: Boolean,
-    onAlertasStockBajoChange: (Boolean) -> Unit,
-    onAlertasStockAltoChange: (Boolean) -> Unit
-) {
-    ConfiguracionSection(
-        title = "🔔 Alertas",
-        icon = Icons.Default.Notifications
-    ) {
-        ConfiguracionSwitch(
-            title = "Alertas de Stock Bajo",
-            subtitle = "Recibe notificaciones cuando el stock esté bajo",
-            checked = alertasStockBajo,
-            onCheckedChange = onAlertasStockBajoChange,
-            icon = Icons.Default.Warning
-        )
-        
-        ConfiguracionSwitch(
-            title = "Alertas de Stock Alto",
-            subtitle = "Recibe notificaciones cuando el stock esté alto",
-            checked = alertasStockAlto,
-            onCheckedChange = onAlertasStockAltoChange,
-            icon = Icons.Default.Info
-        )
-    }
-}
+// @Composable
+// fun ConfiguracionAlertasSection(
+//     alertasStockBajo: Boolean,
+//     alertasStockAlto: Boolean,
+//     onAlertasStockBajoChange: (Boolean) -> Unit,
+//     onAlertasStockAltoChange: (Boolean) -> Unit
+// ) {
+//     ConfiguracionSection(
+//         title = "🔔 Alertas",
+//         icon = Icons.Default.Notifications
+//     ) {
+//         ConfiguracionSwitch(
+//             title = "Alertas de Stock Bajo",
+//             subtitle = "Recibe notificaciones cuando el stock esté bajo",
+//             checked = alertasStockBajo,
+//             onCheckedChange = onAlertasStockBajoChange,
+//             icon = Icons.Default.Warning
+//         )
+//         
+//         ConfiguracionSwitch(
+//             title = "Alertas de Stock Alto",
+//             subtitle = "Recibe notificaciones cuando el stock esté alto",
+//             checked = alertasStockAlto,
+//             onCheckedChange = onAlertasStockAltoChange,
+//             icon = Icons.Default.Info
+//         )
+//     }
+// }
 
 @Composable
 fun ConfiguracionBackupSection(
@@ -583,7 +583,7 @@ fun ConfiguracionSection(
     icon: ImageVector,
     content: @Composable () -> Unit
 ) {
-    Card(
+            Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -628,18 +628,18 @@ fun ConfiguracionSubsection(
     title: String,
     subtitle: String,
     content: @Composable () -> Unit
-) {
-    Column(
+            ) {
+                Column(
         modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
+                ) {
+                    Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
-        )
+                    )
         
-        Text(
+                                         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -709,13 +709,13 @@ fun ConfiguracionSwitch(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            Text(
+                     Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium
-            )
+                     )
             
-            Text(
+                     Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -784,16 +784,16 @@ fun ConfiguracionSaveDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+            AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Guardar Configuración") },
-        text = { Text("¿Estás seguro de que quieres guardar estos cambios?") },
-        confirmButton = {
+                title = { Text("Guardar Configuración") },
+                text = { Text("¿Estás seguro de que quieres guardar estos cambios?") },
+                confirmButton = {
             Button(onClick = onConfirm) {
-                Text("Guardar")
-            }
-        },
-        dismissButton = {
+                        Text("Guardar")
+                    }
+                },
+                dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
@@ -817,10 +817,10 @@ fun ConfiguracionExportDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
+                        Text("Cancelar")
+                    }
+                }
+            )
 }
 
 @Composable
