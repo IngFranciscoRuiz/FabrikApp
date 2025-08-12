@@ -17,6 +17,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import com.fjrh.FabrikApp.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,9 +36,34 @@ fun AgregarIngredienteScreen(
     var proveedor by remember { mutableStateOf("") }
 
     val unidades by unidadesViewModel.unidades.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
 
     var expanded by remember { mutableStateOf(false) }
-    var errorMensaje by remember { mutableStateOf<String?>(null) }
+    var isFormValid by remember { mutableStateOf(false) }
+
+    // Validación en tiempo real
+    LaunchedEffect(nombre, unidad, cantidad, costoPorUnidad) {
+        isFormValid = nombre.trim().isNotBlank() && 
+                     unidad.isNotBlank() && 
+                     cantidad.trim().isNotBlank() && 
+                     costoPorUnidad.trim().isNotBlank() &&
+                     cantidad.toFloatOrNull() != null &&
+                     costoPorUnidad.toDoubleOrNull() != null
+    }
+
+    // Limpiar mensajes cuando se navega
+    LaunchedEffect(Unit) {
+        viewModel.clearMessages()
+    }
+
+    // Manejar éxito
+    LaunchedEffect(successMessage) {
+        successMessage?.let {
+            onGuardarExitoso()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -43,38 +72,80 @@ fun AgregarIngredienteScreen(
     ) {
         Text(
             text = "Agregar Insumo",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Mostrar mensajes de error/éxito
+        errorMessage?.let { message ->
+            ErrorMessageCard(
+                message = message,
+                onDismiss = { viewModel.clearMessages() }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        successMessage?.let { message ->
+            SuccessMessageCard(
+                message = message,
+                onDismiss = { viewModel.clearMessages() }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Mostrar loading si está cargando
+        if (isLoading) {
+            LoadingIndicator("Guardando ingrediente...")
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Campo Nombre con validación
+        OutlinedTextField(
+            value = nombre,
+            onValueChange = { 
+                nombre = it
+                viewModel.clearMessages()
+            },
+            label = { Text("Nombre del insumo *") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = nombre.trim().isBlank() && nombre.isNotBlank(),
+            supportingText = {
+                if (nombre.trim().isBlank() && nombre.isNotBlank()) {
+                    Text("El nombre es obligatorio", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            singleLine = true,
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Dropdown para unidad
+        // Dropdown para unidad con mejor UX
         Box {
             OutlinedTextField(
                 value = unidad,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Unidad") },
+                label = { Text("Unidad de medida *") },
                 modifier = Modifier.fillMaxWidth(),
+                isError = unidad.isBlank() && expanded,
                 trailingIcon = {
-                    IconButton(onClick = { expanded = !expanded }) {
+                    IconButton(
+                        onClick = { expanded = !expanded },
+                        enabled = !isLoading
+                    ) {
                         Icon(
                             imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Expandir unidades"
+                            contentDescription = "Seleccionar unidad"
                         )
                     }
-                }
+                },
+                singleLine = true,
+                enabled = !isLoading
             )
 
             DropdownMenu(
@@ -88,57 +159,83 @@ fun AgregarIngredienteScreen(
                         onClick = {
                             unidad = unidadMedida.nombre
                             expanded = false
+                            viewModel.clearMessages()
                         }
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Campo Cantidad con validación mejorada
         OutlinedTextField(
             value = cantidad,
-            onValueChange = {
-                if (it.matches(Regex("^\\d{0,4}(\\.\\d{0,2})?$"))) cantidad = it
+            onValueChange = { newValue ->
+                if (newValue.matches(Regex("^\\d{0,6}(\\.\\d{0,2})?$")) || newValue.isEmpty()) {
+                    cantidad = newValue
+                    viewModel.clearMessages()
+                }
             },
-            label = { Text("Cantidad disponible") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = costoPorUnidad,
-            onValueChange = {
-                if (it.matches(Regex("^\\d{0,6}(\\.\\d{0,2})?$"))) costoPorUnidad = it
-            },
-            label = { Text("Costo por unidad") },
+            label = { Text("Cantidad disponible *") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = proveedor,
-            onValueChange = { proveedor = it },
-            label = { Text("Proveedor") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = cantidad.isNotBlank() && cantidad.toFloatOrNull() == null,
+            supportingText = {
+                if (cantidad.isNotBlank() && cantidad.toFloatOrNull() == null) {
+                    Text("Ingresa un número válido", color = MaterialTheme.colorScheme.error)
+                } else if (cantidad.isNotBlank()) {
+                    Text("Ej: 100.5")
+                }
+            },
+            singleLine = true,
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        errorMensaje?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        // Campo Costo con validación mejorada
+        OutlinedTextField(
+            value = costoPorUnidad,
+            onValueChange = { newValue ->
+                if (newValue.matches(Regex("^\\d{0,8}(\\.\\d{0,2})?$")) || newValue.isEmpty()) {
+                    costoPorUnidad = newValue
+                    viewModel.clearMessages()
+                }
+            },
+            label = { Text("Costo por unidad *") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth(),
+            isError = costoPorUnidad.isNotBlank() && costoPorUnidad.toDoubleOrNull() == null,
+            supportingText = {
+                if (costoPorUnidad.isNotBlank() && costoPorUnidad.toDoubleOrNull() == null) {
+                    Text("Ingresa un número válido", color = MaterialTheme.colorScheme.error)
+                } else if (costoPorUnidad.isNotBlank()) {
+                    Text("Ej: 15.50")
+                }
+            },
+            singleLine = true,
+            enabled = !isLoading
+        )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Campo Proveedor (opcional)
+        OutlinedTextField(
+            value = proveedor,
+            onValueChange = { proveedor = it },
+            label = { Text("Proveedor (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            enabled = !isLoading
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Botón con estado de carga
         Button(
             onClick = {
-                if (nombre.isBlank() || unidad.isBlank() || cantidad.isBlank() || costoPorUnidad.isBlank()) {
-                    errorMensaje = "Todos los campos obligatorios deben estar llenos."
-                } else {
+                if (isFormValid) {
                     try {
                         val ingrediente = IngredienteInventarioEntity(
                             nombre = nombre.trim(),
@@ -150,19 +247,26 @@ fun AgregarIngredienteScreen(
                         )
 
                         viewModel.agregarIngrediente(ingrediente)
-                        errorMensaje = null
-                        onGuardarExitoso()
                     } catch (e: NumberFormatException) {
-                        errorMensaje = "Error en el formato de números. Verifica cantidad y costo."
+                        // El error se maneja en el ViewModel
                     } catch (e: Exception) {
-                        errorMensaje = "Error al guardar: ${e.message}"
+                        // El error se maneja en el ViewModel
                     }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = nombre.isNotBlank() && unidad.isNotBlank() && cantidad.isNotBlank() && costoPorUnidad.isNotBlank()
+            enabled = isFormValid && !isLoading
         ) {
-            Text("Guardar")
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Guardando...")
+            } else {
+                Text("Guardar Insumo")
+            }
         }
     }
 }

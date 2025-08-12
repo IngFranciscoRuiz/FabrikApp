@@ -1,20 +1,14 @@
 package com.fjrh.FabrikApp.ui.screens
 
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -24,62 +18,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.R
+import com.fjrh.FabrikApp.ui.theme.FabrikAppBlue
+import com.fjrh.FabrikApp.ui.theme.FabrikAppBlueDark
+import com.fjrh.FabrikApp.ui.viewmodel.OnboardingViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @Composable
-fun SplashScreen(navController: NavController) {
-    var logoScale by remember { mutableStateOf(0f) }
-    var textVisible by remember { mutableStateOf(false) }
-    var currentText by remember { mutableStateOf("") }
-    var spinnerVisible by remember { mutableStateOf(false) }
-    
-    val fullText = "FABRIKAPP FACTORY"
-    val typingDelay = 150L
-    
-    // Animación del logo
-    val logoAnimation by animateFloatAsState(
-        targetValue = logoScale,
-        animationSpec = tween(
-            durationMillis = 1000,
-            easing = EaseOutBack
-        ),
-        label = "logo_scale"
-    )
-    
-    // Animación del spinner
-    val spinnerRotation by rememberInfiniteTransition(label = "spinner").animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "spinner_rotation"
+fun SplashScreen(
+    navController: NavController
+) {
+    val onboardingViewModel: OnboardingViewModel = hiltViewModel()
+    var startAnimation by remember { mutableStateOf(false) }
+    val alphaAnim = animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(durationMillis = 2000)
     )
 
-    LaunchedEffect(Unit) {
-        // Secuencia de animaciones
-        delay(500)
-        logoScale = 1f
+    LaunchedEffect(key1 = true) {
+        startAnimation = true
+        delay(3000L)
         
-        delay(800)
-        textVisible = true
+        // Verificar si ya se mostró el onboarding
+        val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
         
-        // Efecto typing
-        for (i in fullText.indices) {
-            currentText = fullText.substring(0, i + 1)
-            delay(typingDelay)
-        }
-        
-        delay(500)
-        spinnerVisible = true
-        
-        // Esperar un poco más antes de navegar
-        delay(2000)
-        
-        // Navegar al menú principal
-        navController.navigate("menu") {
-            popUpTo("splash") { inclusive = true }
+        if (hasSeenOnboarding) {
+            navController.navigate("menu") {
+                popUpTo("splash") { inclusive = true }
+            }
+        } else {
+            navController.navigate("onboarding") {
+                popUpTo("splash") { inclusive = true }
+            }
         }
     }
 
@@ -89,9 +60,8 @@ fun SplashScreen(navController: NavController) {
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF1E3A8A), // Azul industrial oscuro
-                        Color(0xFF3B82F6), // Azul industrial medio
-                        Color(0xFF60A5FA)  // Azul industrial claro
+                        FabrikAppBlue,
+                        FabrikAppBlueDark
                     )
                 )
             ),
@@ -101,93 +71,57 @@ fun SplashScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo animado
-            Image(
-                painter = painterResource(id = R.drawable.fabrikapp_logo),
-                contentDescription = "Logo FabrikApp",
+            // Logo
+            Card(
                 modifier = Modifier
-                    .size(200.dp)
-                    .scale(logoAnimation)
-                    .clip(CircleShape)
-            )
-            
-            Spacer(modifier = Modifier.height(40.dp))
-            
-            // Texto con efecto typing
-            AnimatedVisibility(
-                visible = textVisible,
-                enter = fadeIn(animationSpec = tween(500)) + expandVertically()
+                    .size(120.dp)
+                    .alpha(alphaAnim.value),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.2f)),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = currentText,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    fontSize = 28.sp,
-                    letterSpacing = 2.sp
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.fabrikapp_logo),
+                        contentDescription = "FabrikApp Logo",
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Subtítulo
-            AnimatedVisibility(
-                visible = textVisible,
-                enter = fadeIn(animationSpec = tween(500, delayMillis = 1000))
-            ) {
-                Text(
-                    text = "Sistema de Gestión Industrial",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(60.dp))
-            
-            // Loading spinner
-            AnimatedVisibility(
-                visible = spinnerVisible,
-                enter = fadeIn(animationSpec = tween(500)) + expandVertically()
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .rotate(spinnerRotation),
-                    color = Color.White,
-                    strokeWidth = 3.dp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Texto de carga
-            AnimatedVisibility(
-                visible = spinnerVisible,
-                enter = fadeIn(animationSpec = tween(500, delayMillis = 200))
-            ) {
-                Text(
-                    text = "Iniciando sistema...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp
-                )
-            }
-        }
-        
-        // Versión en la esquina inferior
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp)
-        ) {
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // App Name
             Text(
-                text = "v1.0.0",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.5f),
-                fontSize = 12.sp
+                text = "FABRIKAPP",
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.alpha(alphaAnim.value)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Subtitle
+            Text(
+                text = "Sistema de Gestión Industrial",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.alpha(alphaAnim.value)
+            )
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Loading indicator
+            CircularProgressIndicator(
+                color = Color.White,
+                modifier = Modifier
+                    .size(32.dp)
+                    .alpha(alphaAnim.value)
             )
         }
     }

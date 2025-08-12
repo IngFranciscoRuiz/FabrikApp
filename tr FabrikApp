@@ -1,0 +1,5 @@
+[33m009c41a[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: Corregir duplicación de ingredientes y cálculo de costos en fórmulas - Corregir duplicación de ingredientes al editar fórmulas - Implementar conversión correcta de unidades para costos - Crear UnitConversionUtil para centralizar lógica de conversión - Limpiar UI eliminando tarjetas de debug - Mejorar sincronización de costos entre inventario y fórmulas
+[33m2f9f61b[m feat: Implementación completa de editar fórmulas existentes
+[33mc2ad18f[m feat: Implementar ConfiguracionScreen moderna
+[33m5ce6566[m feat: Implementar SplashScreen moderno con animaciones y efectos visuales
+[33mebbd286[m feat: Migración completa de LaxClean a FabrikApp - Sistema de Gestión Industrial

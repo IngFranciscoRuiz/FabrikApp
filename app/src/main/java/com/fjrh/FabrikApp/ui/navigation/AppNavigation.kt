@@ -25,6 +25,10 @@ fun AppNavigation(navController: NavHostController) {
             SplashScreen(navController)
         }
 
+        composable("onboarding") {
+            OnboardingScreen(navController)
+        }
+
         composable("menu") {
             MainMenuScreen(navController)
         }
