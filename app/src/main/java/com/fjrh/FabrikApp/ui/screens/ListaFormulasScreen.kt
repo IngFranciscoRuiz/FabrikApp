@@ -79,7 +79,11 @@ fun ListaFormulasScreen(
                     items(formulasFiltradas) { formula ->
                         FormulaAccordionCard(
                             formula = formula,
-                            onEdit = { navController.navigate("nueva_formula") },
+                            onEdit = { 
+                                val json = Gson().toJson(formula)
+                                val encoded = Uri.encode(json)
+                                navController.navigate("editar_formula/$encoded")
+                            },
                             onProduccion = {
                                 val json = Gson().toJson(formula)
                                 val encoded = Uri.encode(json)

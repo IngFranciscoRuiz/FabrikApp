@@ -40,6 +40,26 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
+        composable(
+            route = "editar_formula/{formulaJson}",
+            arguments = listOf(navArgument("formulaJson") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val json = backStackEntry.arguments?.getString("formulaJson")
+            val formula = try {
+                val decoded = URLDecoder.decode(json, StandardCharsets.UTF_8.toString())
+                Gson().fromJson(decoded, FormulaConIngredientes::class.java)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+
+            NuevaFormulaScreen(
+                navController = navController,
+                viewModel = hiltViewModel(),
+                formulaParaEditar = formula
+            )
+        }
+
         composable("inventario") {
             InventarioScreenRoute(navController) // Ya inyecta su ViewModel adentro
         }

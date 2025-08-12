@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Check
@@ -26,8 +27,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
 import com.fjrh.FabrikApp.ui.utils.formatearPrecioConComas
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun PedidosProveedorScreen(
     viewModel: PedidosProveedorViewModel = hiltViewModel()
@@ -67,7 +73,8 @@ fun PedidosProveedorScreen(
                             pedido = pedido,
                             onEstadoChanged = { pedidoActualizado ->
                                 viewModel.actualizarPedido(pedidoActualizado)
-                            }
+                            },
+                            onDelete = { viewModel.eliminarPedido(pedido) }
                         )
                     }
                 }
@@ -83,13 +90,17 @@ fun PedidosProveedorScreen(
                 }
             )
         }
+
+
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PedidoCard(
     pedido: PedidoProveedorEntity,
-    onEstadoChanged: (PedidoProveedorEntity) -> Unit = {}
+    onEstadoChanged: (PedidoProveedorEntity) -> Unit = {},
+    onDelete: () -> Unit = {}
 ) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val colorEstado = when (pedido.estado) {
@@ -97,10 +108,50 @@ fun PedidoCard(
         else -> Color(0xFF1976D2) // Azul sobrio para pendiente
     }
     
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    val dismissState = rememberDismissState(
+        confirmStateChange = { dismissValue ->
+            if (dismissValue == DismissValue.DismissedToStart) {
+                showDeleteDialog = true
+                true
+            } else {
+                false
+            }
+        }
+    )
+    
+    // Resetear el estado cuando se cierre el diálogo
+    LaunchedEffect(showDeleteDialog) {
+        if (!showDeleteDialog) {
+            dismissState.reset()
+        }
+    }
+    
+    SwipeToDismiss(
+        state = dismissState,
+        directions = setOf(DismissDirection.EndToStart), // Solo swipe a la izquierda
+        background = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFD32F2F))
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
+        dismissContent = {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -181,6 +232,22 @@ fun PedidoCard(
                 }
             }
         }
+            }
+        }
+    )
+    
+    // Diálogo local de confirmación
+    if (showDeleteDialog) {
+        EliminarPedidoDialog(
+            pedido = pedido,
+            onConfirm = {
+                onDelete()
+                showDeleteDialog = false
+            },
+            onDismiss = { 
+                showDeleteDialog = false
+            }
+        )
     }
 }
 
@@ -301,6 +368,80 @@ fun AgregarPedidoDialog(
                          validarPrecio(monto)
             ) {
                 Text("Guardar Pedido")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+} 
+
+@Composable
+fun EliminarPedidoDialog(
+    pedido: PedidoProveedorEntity,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                text = "⚠️ Eliminar Pedido",
+                color = Color(0xFFD32F2F)
+            )
+        },
+        text = { 
+            Column {
+                Text(
+                    text = "¿Estás seguro de que quieres eliminar este pedido?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Esta acción no se puede deshacer y afectará el balance financiero.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Detalles del pedido:",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text("Proveedor: ${pedido.nombreProveedor}")
+                        Text("Productos: ${pedido.productos}")
+                        Text("Monto: $${String.format("%.2f", pedido.monto)}")
+                        Text("Estado: ${pedido.estado}")
+                        Text("Fecha: ${dateFormat.format(Date(pedido.fecha))}")
+                        pedido.descripcion?.let { descripcion ->
+                            if (descripcion.isNotBlank()) {
+                                Text("Descripción: $descripcion")
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F)
+                )
+            ) {
+                Text("ELIMINAR")
             }
         },
         dismissButton = {

@@ -67,23 +67,32 @@ class FormulaViewModel @Inject constructor(
 
     fun actualizarFormula(formulaId: Long, nombre: String, ingredientes: List<Ingrediente>) {
         viewModelScope.launch {
-            // Primero eliminar ingredientes existentes
-            repository.eliminarIngredientesByFormulaId(formulaId)
-            
-            // Luego insertar los nuevos ingredientes
-            val formulaEntity = FormulaEntity(id = formulaId, nombre = nombre)
-            val ingredientesEntities = ingredientes.map { ingrediente ->
-                IngredienteEntity(
-                    formulaId = formulaId,
-                    nombre = ingrediente.nombre,
-                    unidad = ingrediente.unidad,
-                    cantidad = ingrediente.cantidad,
-                    costoPorUnidad = ingrediente.costoPorUnidad
-                )
+            try {
+                // 1. Actualizar la fórmula existente
+                val formulaEntity = FormulaEntity(id = formulaId, nombre = nombre)
+                repository.actualizarFormula(formulaEntity)
+                
+                // 2. Eliminar ingredientes existentes
+                repository.eliminarIngredientesByFormulaId(formulaId)
+                
+                // 3. Insertar los nuevos ingredientes
+                val ingredientesEntities = ingredientes.map { ingrediente ->
+                    IngredienteEntity(
+                        formulaId = formulaId,
+                        nombre = ingrediente.nombre,
+                        unidad = ingrediente.unidad,
+                        cantidad = ingrediente.cantidad,
+                        costoPorUnidad = ingrediente.costoPorUnidad
+                    )
+                }
+                
+                repository.insertarIngredientes(ingredientesEntities)
+                
+                _uiEvent.emit(UiEvent.FormulaGuardada)
+            } catch (e: Exception) {
+                // TODO: Manejar error
+                e.printStackTrace()
             }
-            
-            repository.insertarFormulaConIngredientes(formulaEntity, ingredientesEntities)
-            _uiEvent.emit(UiEvent.FormulaGuardada)
         }
     }
 

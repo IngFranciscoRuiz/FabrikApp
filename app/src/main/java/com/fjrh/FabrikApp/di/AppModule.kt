@@ -5,6 +5,8 @@ import android.content.Context
 import com.fjrh.FabrikApp.data.local.AppDatabase
 import com.fjrh.FabrikApp.data.local.dao.FormulaDao
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
+import com.fjrh.FabrikApp.data.local.repository.FormulaRepository
+import com.fjrh.FabrikApp.data.local.repository.InventarioRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +32,18 @@ object AppModule {
     @Singleton
     fun provideConfiguracionDataStore(application: Application): ConfiguracionDataStore {
         return ConfiguracionDataStore(application)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFormulaRepository(db: AppDatabase): FormulaRepository {
+        return FormulaRepository(db.formulaDao())
+    }
+
+    @Provides
+    @Singleton
+    fun provideInventarioRepository(db: AppDatabase): InventarioRepository {
+        return InventarioRepository(db.formulaDao())
     }
 }
 

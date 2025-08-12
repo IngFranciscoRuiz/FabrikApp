@@ -48,6 +48,14 @@ class FormulaRepository @Inject constructor(
         return formulaDao.insertFormula(formula)
     }
 
+    suspend fun actualizarFormula(formula: FormulaEntity) {
+        formulaDao.updateFormula(formula)
+    }
+
+    suspend fun insertarIngredientes(ingredientes: List<IngredienteEntity>) {
+        formulaDao.insertIngredientes(ingredientes)
+    }
+
     fun getStockProductos(): Flow<List<StockProducto>> {
         return formulaDao.getStockProductosConVentas().map { list ->
             list.map { StockProducto(nombre = it.nombreFormula, stock = it.stock) }
@@ -83,6 +91,14 @@ class FormulaRepository @Inject constructor(
 
     suspend fun getLitrosVendidosPorProducto(nombreProducto: String): Float? {
         return formulaDao.getLitrosVendidosPorProducto(nombreProducto)
+    }
+
+    suspend fun eliminarVenta(venta: VentaEntity) {
+        formulaDao.eliminarVenta(venta)
+    }
+
+    suspend fun eliminarVentaPorId(ventaId: Long) {
+        formulaDao.eliminarVentaPorId(ventaId)
     }
 
     // BALANCE
@@ -147,6 +163,22 @@ class FormulaRepository @Inject constructor(
 
     suspend fun eliminarPedidoProveedor(pedido: PedidoProveedorEntity) {
         formulaDao.eliminarPedidoProveedor(pedido)
+    }
+
+    suspend fun eliminarPedidoProveedorPorId(pedidoId: Long) {
+        formulaDao.eliminarPedidoProveedorPorId(pedidoId)
+    }
+
+    // MÉTODOS PARA LIMPIAR DATOS (IMPORTACIÓN)
+    suspend fun limpiarTodosLosDatos() {
+        formulaDao.limpiarIngredientesInventario()
+        formulaDao.limpiarFormulas()
+        formulaDao.limpiarIngredientes()
+        formulaDao.limpiarVentas()
+        formulaDao.limpiarHistorial()
+        formulaDao.limpiarBalance()
+        formulaDao.limpiarNotas()
+        formulaDao.limpiarPedidosProveedor()
     }
 
 }

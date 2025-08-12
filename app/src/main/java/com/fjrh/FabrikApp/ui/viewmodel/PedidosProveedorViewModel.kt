@@ -63,7 +63,25 @@ class PedidosProveedorViewModel @Inject constructor(
 
     fun eliminarPedido(pedido: PedidoProveedorEntity) {
         viewModelScope.launch {
-            repository.eliminarPedidoProveedor(pedido)
+            try {
+                // 1. Eliminar el pedido
+                repository.eliminarPedidoProveedor(pedido)
+                
+                // 2. Si el pedido estaba pagado, registrar ingreso en balance (devolver el dinero)
+                if (pedido.estado == "PAGADO") {
+                    val ingreso = BalanceEntity(
+                        fecha = System.currentTimeMillis(),
+                        tipo = "INGRESO",
+                        concepto = "Eliminación de pago a proveedor: ${pedido.nombreProveedor}",
+                        monto = pedido.monto,
+                        descripcion = "Devolución por eliminación de pedido: ${pedido.productos}"
+                    )
+                    repository.insertarBalance(ingreso)
+                }
+            } catch (e: Exception) {
+                // TODO: Manejar error
+                throw e
+            }
         }
     }
 } 

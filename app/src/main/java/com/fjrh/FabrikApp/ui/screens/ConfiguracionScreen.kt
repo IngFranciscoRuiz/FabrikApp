@@ -26,11 +26,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +55,6 @@ fun ConfiguracionScreen(
     
     // Configuraciones adicionales
     var temaOscuro by remember { mutableStateOf(false) }
-    var notificacionesActivas by remember { mutableStateOf(true) }
     var alertasStockBajo by remember { mutableStateOf(true) }
     var alertasStockAlto by remember { mutableStateOf(false) }
     var backupAutomatico by remember { mutableStateOf(true) }
@@ -57,8 +64,14 @@ fun ConfiguracionScreen(
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
+    var showLimpiarDatosDialog by remember { mutableStateOf(false) }
 
-    // Cargar configuración actual
+    // Estados del ViewModel
+    val mensaje by viewModel.mensaje.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val archivosBackup by viewModel.archivosBackup.collectAsState()
+
+    // Cargar configuración inicial
     LaunchedEffect(Unit) {
         viewModel.configuracion.collect { config ->
             stockAltoProductos = config.stockAltoProductos.toString()
@@ -67,7 +80,30 @@ fun ConfiguracionScreen(
             stockAltoInsumos = config.stockAltoInsumos.toString()
             stockMedioInsumos = config.stockMedioInsumos.toString()
             stockBajoInsumos = config.stockBajoInsumos.toString()
+            alertasStockBajo = config.alertasStockBajo
+            alertasStockAlto = config.alertasStockAlto
+            backupAutomatico = config.backupAutomatico
+            frecuenciaBackup = config.frecuenciaBackup.toString()
+            temaOscuro = config.temaOscuro
         }
+    }
+
+    // Aplicar tema automáticamente cuando cambie
+    LaunchedEffect(temaOscuro) {
+        val config = ConfiguracionStock(
+            stockAltoProductos = stockAltoProductos.toFloatOrNull() ?: 100f,
+            stockMedioProductos = stockMedioProductos.toFloatOrNull() ?: 50f,
+            stockBajoProductos = stockBajoProductos.toFloatOrNull() ?: 25f,
+            stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
+            stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
+            stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
+            alertasStockBajo = alertasStockBajo,
+            alertasStockAlto = alertasStockAlto,
+            backupAutomatico = backupAutomatico,
+            frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
+            temaOscuro = temaOscuro
+        )
+        viewModel.guardarConfiguracion(config)
     }
 
     Scaffold(
@@ -145,18 +181,86 @@ fun ConfiguracionScreen(
                 onTemaOscuroChange = { temaOscuro = it }
             )
             
-            ConfiguracionNotificacionesSection(
-                notificacionesActivas = notificacionesActivas,
-                onNotificacionesActivasChange = { notificacionesActivas = it }
-            )
             
-            ConfiguracionDatosSection(
-                onExportarClick = { showExportDialog = true },
-                onImportarClick = { showImportDialog = true },
-                onResetClick = { showResetDialog = true }
-            )
+            
+                            ConfiguracionDatosSection(
+                    onExportarClick = { showExportDialog = true },
+                    onImportarClick = { showImportDialog = true },
+                    onResetClick = { showResetDialog = true },
+                    onLimpiarDatosClick = { showLimpiarDatosDialog = true }
+                )
             
             Spacer(modifier = Modifier.height(32.dp))
+            
+            // Indicador de carga
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            // Mensajes de estado
+            mensaje?.let { msg ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (msg.contains("Error")) 
+                            Color(0xFFFFEBEE) 
+                        else 
+                            Color(0xFFE8F5E8)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (msg.contains("Error")) 
+                                Icons.Default.Error 
+                            else 
+                                Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = if (msg.contains("Error")) 
+                                Color(0xFFD32F2F) 
+                            else 
+                                Color(0xFF388E3C)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Text(
+                            text = msg,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (msg.contains("Error")) 
+                                Color(0xFFD32F2F) 
+                            else 
+                                Color(0xFF388E3C)
+                        )
+                        
+                        Spacer(modifier = Modifier.weight(1f))
+                        
+                        IconButton(
+                            onClick = { viewModel.limpiarMensaje() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Cerrar",
+                                tint = if (msg.contains("Error")) 
+                                    Color(0xFFD32F2F) 
+                                else 
+                                    Color(0xFF388E3C)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Diálogos
@@ -169,7 +273,12 @@ fun ConfiguracionScreen(
                         stockBajoProductos = stockBajoProductos.toFloatOrNull() ?: 25f,
                         stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
                         stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
-                        stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f
+                        stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
+                        alertasStockBajo = alertasStockBajo,
+                        alertasStockAlto = alertasStockAlto,
+                        backupAutomatico = backupAutomatico,
+                        frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
+                        temaOscuro = temaOscuro
                     )
                     viewModel.guardarConfiguracion(config)
                     showSaveDialog = false
@@ -181,7 +290,7 @@ fun ConfiguracionScreen(
         if (showExportDialog) {
             ConfiguracionExportDialog(
                 onConfirm = {
-                    // Implementar exportación
+                    viewModel.exportarDatos()
                     showExportDialog = false
                 },
                 onDismiss = { showExportDialog = false }
@@ -190,8 +299,9 @@ fun ConfiguracionScreen(
         
         if (showImportDialog) {
             ConfiguracionImportDialog(
-                onConfirm = {
-                    // Implementar importación
+                archivosBackup = archivosBackup,
+                onImportarArchivo = { archivo ->
+                    viewModel.importarDatos(archivo)
                     showImportDialog = false
                 },
                 onDismiss = { showImportDialog = false }
@@ -201,10 +311,20 @@ fun ConfiguracionScreen(
         if (showResetDialog) {
             ConfiguracionResetDialog(
                 onConfirm = {
-                    // Implementar reset
+                    viewModel.resetearConfiguracion()
                     showResetDialog = false
                 },
                 onDismiss = { showResetDialog = false }
+            )
+        }
+        
+        if (showLimpiarDatosDialog) {
+            ConfiguracionLimpiarDatosDialog(
+                onConfirm = {
+                    viewModel.limpiarTodosLosDatos()
+                    showLimpiarDatosDialog = false
+                },
+                onDismiss = { showLimpiarDatosDialog = false }
             )
         }
     }
@@ -410,30 +530,14 @@ fun ConfiguracionTemaSection(
     }
 }
 
-@Composable
-fun ConfiguracionNotificacionesSection(
-    notificacionesActivas: Boolean,
-    onNotificacionesActivasChange: (Boolean) -> Unit
-) {
-    ConfiguracionSection(
-        title = "📱 Notificaciones",
-        icon = Icons.Default.NotificationsActive
-    ) {
-        ConfiguracionSwitch(
-            title = "Notificaciones Push",
-            subtitle = "Recibe notificaciones en tiempo real",
-            checked = notificacionesActivas,
-            onCheckedChange = onNotificacionesActivasChange,
-            icon = Icons.Default.NotificationsActive
-        )
-    }
-}
+
 
 @Composable
 fun ConfiguracionDatosSection(
     onExportarClick: () -> Unit,
     onImportarClick: () -> Unit,
-    onResetClick: () -> Unit
+    onResetClick: () -> Unit,
+    onLimpiarDatosClick: () -> Unit
 ) {
     ConfiguracionSection(
         title = "📁 Datos",
@@ -461,6 +565,14 @@ fun ConfiguracionDatosSection(
             onClick = onResetClick,
             icon = Icons.Default.Restore,
             color = Color(0xFFFF5722)
+        )
+        
+        ConfiguracionButton(
+            title = "Limpiar Todos los Datos",
+            subtitle = "Elimina todos los datos de la aplicación",
+            onClick = onLimpiarDatosClick,
+            icon = Icons.Default.DeleteForever,
+            color = Color(0xFFD32F2F)
         )
     }
 }
@@ -713,19 +825,54 @@ fun ConfiguracionExportDialog(
 
 @Composable
 fun ConfiguracionImportDialog(
-    onConfirm: () -> Unit,
+    archivosBackup: List<File>,
+    onImportarArchivo: (File) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Importar Datos") },
-        text = { Text("¿Deseas importar datos desde un archivo? Esto sobrescribirá los datos actuales.") },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Importar")
+        text = {
+            if (archivosBackup.isEmpty()) {
+                Text("No se encontraron archivos de backup para importar.")
+            } else {
+                Column {
+                    Text("Selecciona un archivo de backup:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 200.dp)
+                    ) {
+                        items(archivosBackup) { archivo ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clickable { onImportarArchivo(archivo) },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = archivo.name,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Creado: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(archivo.lastModified()))}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
-        dismissButton = {
+        confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
@@ -750,6 +897,71 @@ fun ConfiguracionResetDialog(
                 )
             ) {
                 Text("Restablecer")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun ConfiguracionLimpiarDatosDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color(0xFFFF5722),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("⚠️ LIMPIAR TODOS LOS DATOS")
+            }
+        },
+        text = { 
+            Column {
+                Text(
+                    "Esta acción eliminará PERMANENTEMENTE:",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF5722)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("• Todos los ingredientes del inventario")
+                Text("• Todas las fórmulas y recetas")
+                Text("• Todo el historial de producción")
+                Text("• Todas las ventas registradas")
+                Text("• Todas las notas y recordatorios")
+                Text("• Toda la configuración")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Esta acción NO se puede deshacer. Asegúrate de hacer un backup antes.",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF5722)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("ELIMINAR TODO")
             }
         },
         dismissButton = {

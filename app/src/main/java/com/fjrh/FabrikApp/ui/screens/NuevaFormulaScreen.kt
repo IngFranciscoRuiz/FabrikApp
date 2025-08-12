@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun NuevaFormulaScreen(
     viewModel: FormulaViewModel,
-    navController: NavController
+    navController: NavController,
+    formulaParaEditar: com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes? = null
 ) {
     var nombreFormula by remember { mutableStateOf("") }
     var selectedIngrediente by remember { mutableStateOf<IngredienteInventarioEntity?>(null) }
@@ -42,6 +43,25 @@ fun NuevaFormulaScreen(
     
     // Lista de unidades disponibles
     val unidades = listOf("gr", "Kg", "ml", "L", "Pzas")
+    
+    // Pre-llenar campos si se está editando una fórmula
+    LaunchedEffect(formulaParaEditar) {
+        formulaParaEditar?.let { formula ->
+            nombreFormula = formula.formula.nombre
+            // Convertir ingredientes de la entidad al modelo de dominio
+            listaIngredientes.clear()
+            listaIngredientes.addAll(
+                formula.ingredientes.map { ingredienteEntity ->
+                    Ingrediente(
+                        nombre = ingredienteEntity.nombre,
+                        cantidad = ingredienteEntity.cantidad,
+                        unidad = ingredienteEntity.unidad,
+                        costoPorUnidad = ingredienteEntity.costoPorUnidad
+                    )
+                }
+            )
+        }
+    }
 
     // Escuchar evento de éxito del ViewModel
     LaunchedEffect(Unit) {
@@ -70,7 +90,7 @@ fun NuevaFormulaScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Fórmula nueva",
+                text = if (formulaParaEditar != null) "Editar Fórmula" else "Fórmula Nueva",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -292,18 +312,31 @@ fun NuevaFormulaScreen(
             Button(
                 onClick = {
                     if (nombreFormula.isNotBlank() && listaIngredientes.isNotEmpty()) {
-                        viewModel.guardarFormula(
-                            Formula(
+                        if (formulaParaEditar != null) {
+                            // Actualizar fórmula existente
+                            viewModel.actualizarFormula(
+                                formulaId = formulaParaEditar.formula.id,
                                 nombre = nombreFormula,
                                 ingredientes = listaIngredientes.toList()
                             )
-                        )
+                        } else {
+                            // Crear nueva fórmula
+                            viewModel.guardarFormula(
+                                Formula(
+                                    nombre = nombreFormula,
+                                    ingredientes = listaIngredientes.toList()
+                                )
+                            )
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE8DC))
             ) {
-                Text("Guardar fórmula", color = Color(0xFF944D2E))
+                Text(
+                    text = if (formulaParaEditar != null) "Actualizar Fórmula" else "Guardar Fórmula", 
+                    color = Color(0xFF944D2E)
+                )
             }
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.IconButton
@@ -28,8 +29,13 @@ import java.util.*
 import com.fjrh.FabrikApp.ui.utils.validarLitros
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
 import com.fjrh.FabrikApp.ui.utils.formatearPrecio
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun VentasScreen(
     viewModel: VentasViewModel = hiltViewModel()
@@ -66,7 +72,10 @@ fun VentasScreen(
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(ventas) { venta ->
-                        VentaCard(venta = venta)
+                        VentaCard(
+                            venta = venta,
+                            onDelete = { viewModel.eliminarVenta(venta) }
+                        )
                     }
                 }
             }
@@ -82,63 +91,127 @@ fun VentasScreen(
                 }
             )
         }
+
+
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun VentaCard(venta: VentaEntity) {
+fun VentaCard(
+    venta: VentaEntity,
+    onDelete: () -> Unit
+) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = venta.nombreProducto,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "$${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("${venta.litrosVendidos} L")
-                Text("$${String.format("%.2f", venta.precioPorLitro)}/L")
-            }
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            Text(
-                text = dateFormat.format(Date(venta.fecha)),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-            
-            venta.cliente?.let { cliente ->
-                Text(
-                    text = "Cliente: $cliente",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+
+    
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    val dismissState = rememberDismissState(
+        confirmStateChange = { dismissValue ->
+            if (dismissValue == DismissValue.DismissedToStart) {
+                showDeleteDialog = true
+                true
+            } else {
+                false
             }
         }
+    )
+    
+    // Resetear el estado cuando se cierre el diálogo
+    LaunchedEffect(showDeleteDialog) {
+        if (!showDeleteDialog) {
+            dismissState.reset()
+        }
+    }
+    
+    SwipeToDismiss(
+        state = dismissState,
+        directions = setOf(DismissDirection.EndToStart), // Solo swipe a la izquierda
+        background = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFD32F2F))
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
+        dismissContent = {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = venta.nombreProducto,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "$${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("${venta.litrosVendidos} L")
+                        Text("$${String.format("%.2f", venta.precioPorLitro)}/L")
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = dateFormat.format(Date(venta.fecha)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    
+                    venta.cliente?.let { cliente ->
+                        Text(
+                            text = "Cliente: $cliente",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            }
+        }
+    )
+    
+    // Diálogo local de confirmación
+    if (showDeleteDialog) {
+        EliminarVentaDialog(
+            venta = venta,
+            onConfirm = {
+                onDelete()
+                showDeleteDialog = false
+            },
+            onDismiss = { 
+                showDeleteDialog = false
+            }
+        )
     }
 }
 
@@ -277,6 +350,78 @@ fun AgregarVentaDialog(
                          validarPrecio(precioPorLitro)
             ) {
                 Text("Guardar Venta")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+} 
+
+@Composable
+fun EliminarVentaDialog(
+    venta: VentaEntity,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { 
+            Text(
+                text = "⚠️ Eliminar Venta",
+                color = Color(0xFFD32F2F)
+            )
+        },
+        text = { 
+            Column {
+                Text(
+                    text = "¿Estás seguro de que quieres eliminar esta venta?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Esta acción no se puede deshacer y afectará el balance financiero.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Detalles de la venta:",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text("Producto: ${venta.nombreProducto}")
+                        Text("Litros: ${venta.litrosVendidos} L")
+                        Text("Precio: $${String.format("%.2f", venta.precioPorLitro)}/L")
+                        Text("Total: $${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}")
+                        Text("Fecha: ${dateFormat.format(Date(venta.fecha))}")
+                        venta.cliente?.let { cliente ->
+                            Text("Cliente: $cliente")
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F)
+                )
+            ) {
+                Text("ELIMINAR")
             }
         },
         dismissButton = {

@@ -18,6 +18,9 @@ interface FormulaDao {
     @Insert
     suspend fun insertFormula(formula: FormulaEntity): Long
 
+    @Update
+    suspend fun updateFormula(formula: FormulaEntity)
+
     @Insert
     suspend fun insertIngredientes(ingredientes: List<IngredienteEntity>)
 
@@ -85,6 +88,12 @@ interface FormulaDao {
     @Query("SELECT SUM(litrosVendidos) FROM ventas WHERE nombreProducto = :nombreProducto")
     suspend fun getLitrosVendidosPorProducto(nombreProducto: String): Float?
 
+    @Delete
+    suspend fun eliminarVenta(venta: VentaEntity)
+
+    @Query("DELETE FROM ventas WHERE id = :ventaId")
+    suspend fun eliminarVentaPorId(ventaId: Long)
+
     // BALANCE
     @Insert
     suspend fun insertarBalance(balance: BalanceEntity)
@@ -131,8 +140,36 @@ interface FormulaDao {
     @Delete
     suspend fun eliminarPedidoProveedor(pedido: PedidoProveedorEntity)
 
+    @Query("DELETE FROM pedidos_proveedor WHERE id = :pedidoId")
+    suspend fun eliminarPedidoProveedorPorId(pedidoId: Long)
+
     @Query("SELECT * FROM pedidos_proveedor ORDER BY fecha DESC")
     fun getPedidosProveedor(): Flow<List<PedidoProveedorEntity>>
+
+    // MÉTODOS PARA LIMPIAR DATOS (IMPORTACIÓN)
+    @Query("DELETE FROM ingredientes_inventario")
+    suspend fun limpiarIngredientesInventario()
+
+    @Query("DELETE FROM formulas")
+    suspend fun limpiarFormulas()
+
+    @Query("DELETE FROM ingredientes")
+    suspend fun limpiarIngredientes()
+
+    @Query("DELETE FROM ventas")
+    suspend fun limpiarVentas()
+
+    @Query("DELETE FROM historial_produccion")
+    suspend fun limpiarHistorial()
+
+    @Query("DELETE FROM balance")
+    suspend fun limpiarBalance()
+
+    @Query("DELETE FROM notas")
+    suspend fun limpiarNotas()
+
+    @Query("DELETE FROM pedidos_proveedor")
+    suspend fun limpiarPedidosProveedor()
 
 }
 

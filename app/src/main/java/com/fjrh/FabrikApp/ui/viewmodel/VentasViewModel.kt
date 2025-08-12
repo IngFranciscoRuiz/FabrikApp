@@ -56,4 +56,26 @@ class VentasViewModel @Inject constructor(
             repository.getLitrosVendidosPorProducto(nombreProducto)
         }
     }
+
+    fun eliminarVenta(venta: VentaEntity) {
+        viewModelScope.launch {
+            try {
+                // 1. Eliminar la venta
+                repository.eliminarVenta(venta)
+                
+                // 2. Registrar egreso en balance (restar el ingreso)
+                val egreso = BalanceEntity(
+                    fecha = System.currentTimeMillis(),
+                    tipo = "EGRESO",
+                    concepto = "Eliminación de venta de ${venta.nombreProducto}",
+                    monto = venta.litrosVendidos * venta.precioPorLitro,
+                    descripcion = "Eliminación de venta de ${venta.litrosVendidos}L de ${venta.nombreProducto} a $${venta.precioPorLitro}/L"
+                )
+                repository.insertarBalance(egreso)
+            } catch (e: Exception) {
+                // TODO: Manejar error
+                throw e
+            }
+        }
+    }
 } 
