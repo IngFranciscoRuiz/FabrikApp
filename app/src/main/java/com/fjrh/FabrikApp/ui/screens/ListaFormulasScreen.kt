@@ -9,18 +9,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes
 import com.fjrh.FabrikApp.data.local.entity.FormulaEntity
@@ -46,38 +44,112 @@ fun ListaFormulasScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF000000), Color(0xFF0D1A2F))
-                )
-            )
-            .padding(16.dp)
+            .background(Color(0xFFF8F9FA))
     ) {
-        // Host del Snackbar
-        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
-
-        Column {
-            // Campo de búsqueda
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Buscar fórmulas...") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
-
-            if (formulasFiltradas.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(top = 60.dp)
+                .padding(bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header moderno
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF1A1A1A),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { navController.popBackStack() }
+                )
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
                 Text(
-                    text = if (searchQuery.isBlank()) "No hay fórmulas registradas aún" else "No se encontraron fórmulas",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    text = "Fórmulas",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                // Contador de fórmulas
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        text = "${listaFormulas.size}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Campo de búsqueda moderno
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = Color(0xFF666666),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar fórmulas...") },
+                        modifier = Modifier.weight(1f),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        singleLine = true
+                    )
+                }
+            }
+
+            // Lista de fórmulas
+            if (formulasFiltradas.isEmpty()) {
+                FormulasEmptyState(
+                    icon = Icons.Default.Science,
+                    title = if (searchQuery.isBlank()) "No hay fórmulas" else "No se encontraron fórmulas",
+                    message = if (searchQuery.isBlank()) 
+                        "No hay fórmulas registradas aún. Crea tu primera fórmula." 
+                    else 
+                        "No se encontraron fórmulas que coincidan con '$searchQuery'"
                 )
             } else {
-                LazyColumn {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     items(formulasFiltradas) { formula ->
-                        FormulaAccordionCard(
+                        ModernFormulaCard(
                             formula = formula,
                             onEdit = { 
                                 println("DEBUG: === INICIO EDICIÓN FÓRMULA ===")
@@ -122,12 +194,82 @@ fun ListaFormulasScreen(
                 }
             }
         }
+        
+        // FAB para agregar nueva fórmula
+        FloatingActionButton(
+            onClick = { navController.navigate("nueva_formula") },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 100.dp, end = 20.dp),
+            containerColor = Color(0xFF1976D2),
+            contentColor = Color.White
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar fórmula",
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        
+        // Snackbar
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+        )
     }
 }
 
+@Composable
+fun FormulasEmptyState(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    message: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color(0xFFCCCCCC),
+                modifier = Modifier.size(48.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF1A1A1A),
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF666666),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
 
 @Composable
-fun FormulaAccordionCard(
+fun ModernFormulaCard(
     formula: FormulaConIngredientes,
     onEdit: () -> Unit,
     onProduccion: () -> Unit,
@@ -136,88 +278,207 @@ fun FormulaAccordionCard(
     var expanded by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
 
-    val cardColor = Color(0xFFEAF0F6)
-    val textColor = Color(0xFF1C2A3A)
-
     Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
-            .padding(bottom = 12.dp)
-            .clickable { expanded = !expanded }
+            .clickable { expanded = !expanded },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Header de la tarjeta
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = formula.formula.nombre,
-                    fontSize = 18.sp,
-                    color = textColor
+                Icon(
+                    imageVector = Icons.Default.Science,
+                    contentDescription = null,
+                    tint = Color(0xFF1976D2),
+                    modifier = Modifier.size(24.dp)
                 )
-                IconButton(onClick = { expanded = !expanded }) {
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = formula.formula.nombre,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Text(
+                        text = "${formula.ingredientes.size} ingredientes",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF666666)
+                    )
+                }
+                
+                IconButton(
+                    onClick = { expanded = !expanded }
+                ) {
                     Icon(
-                        imageVector = Icons.Default.ExpandMore,
-                        contentDescription = "Expandir",
-                        tint = textColor
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Contraer" else "Expandir",
+                        tint = Color(0xFF666666)
                     )
                 }
             }
 
+            // Contenido expandible
             if (expanded) {
-                Spacer(modifier = Modifier.height(8.dp))
-
+                Spacer(modifier = Modifier.height(16.dp))
+                
                 // Tabla de ingredientes
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text("Insumo", modifier = Modifier.weight(1f), color = textColor)
-                        Text("Unidad", modifier = Modifier.weight(1f), color = textColor)
-                        Text("Cantidad", modifier = Modifier.weight(1f), color = textColor)
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    formula.ingredientes.forEach {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Text(it.nombre, modifier = Modifier.weight(1f), color = textColor)
-                            Text(it.unidad, modifier = Modifier.weight(1f), color = textColor)
-                            Text(it.cantidad.toString(), modifier = Modifier.weight(1f), color = textColor)
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        // Header de la tabla
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Insumo",
+                                modifier = Modifier.weight(2f),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Unidad",
+                                modifier = Modifier.weight(0.8f),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Cantidad",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        HorizontalDivider(color = Color(0xFFE0E0E0))
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        // Lista de ingredientes
+                        formula.ingredientes.forEach { ingrediente ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = ingrediente.nombre,
+                                    modifier = Modifier.weight(2f),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF1A1A1A),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = ingrediente.unidad,
+                                    modifier = Modifier.weight(0.8f),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF1A1A1A)
+                                )
+                                Text(
+                                    text = ingrediente.cantidad.toString(),
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF1A1A1A),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            
+                            if (ingrediente != formula.ingredientes.last()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Botones de acción
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
                         onClick = onProduccion,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Producción", color = Color.White)
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Producción",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
+                    
                     Button(
                         onClick = {
                             println("DEBUG: Botón Editar presionado para fórmula: ${formula.formula.nombre}")
                             onEdit()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Editar", color = Color.White)
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Editar",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
+                    
                     Button(
                         onClick = { showDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Eliminar", color = Color.White)
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Eliminar",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
@@ -228,23 +489,45 @@ fun FormulaAccordionCard(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Confirmar eliminación") },
+            title = { 
+                Text(
+                    text = "Confirmar eliminación",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
-                Text("¿Estás seguro de que deseas eliminar la fórmula '${formula.formula.nombre}'? Esta acción no se puede deshacer.")
+                Text(
+                    text = "¿Estás seguro de que deseas eliminar la fórmula '${formula.formula.nombre}'? Esta acción no se puede deshacer.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF666666)
+                )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    onDelete(formula.formula)
-                    showDialog = false
-                }) {
-                    Text("Eliminar", color = Color.Red)
+                TextButton(
+                    onClick = {
+                        onDelete(formula.formula)
+                        showDialog = false
+                    }
+                ) {
+                    Text(
+                        text = "Eliminar",
+                        color = Color(0xFFD32F2F),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancelar")
+                    Text(
+                        text = "Cancelar",
+                        color = Color(0xFF666666)
+                    )
                 }
-            }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }

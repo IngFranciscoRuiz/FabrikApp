@@ -1,18 +1,21 @@
 package com.fjrh.FabrikApp.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.Ingrediente
@@ -70,62 +73,162 @@ fun EditarFormulaScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp)
+                .padding(top = 60.dp)
+                .padding(bottom = 100.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "Editar Fórmula",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            OutlinedTextField(
+            // Header moderno
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color(0xFF1976D2)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Text(
+                        text = "Editar Fórmula",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "${listaIngredientes.size}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Descripción
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        tint = Color(0xFF1976D2),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Text(
+                        text = "Modifica los ingredientes y cantidades de tu fórmula",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF666666)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Campo nombre del producto
+            ModernFormField(
                 value = nombreFormula,
                 onValueChange = { nombreFormula = it },
-                label = { Text("Nombre del producto") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Nombre del producto",
+                icon = Icons.Default.Description,
+                color = Color(0xFF1976D2)
             )
-
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Sección de ingredientes
             Text(
-                text = "INSUMOS POR LITRO:",
+                text = "Insumos por litro",
                 style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF1A1A1A),
                 fontWeight = FontWeight.Bold
             )
-
-            // Dropdown para seleccionar ingrediente del inventario
-            var expanded by remember { mutableStateOf(false) }
             
-            // Debug: mostrar cantidad de ingredientes
-            Text("Insumos disponibles: ${ingredientesInventario.size}")
+            Spacer(modifier = Modifier.height(12.dp))
             
+            // Selector de ingrediente
             Box {
                 OutlinedTextField(
                     value = selectedIngrediente?.nombre ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Seleccionar insumo") },
-                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.WaterDrop,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3)
+                        )
+                    },
                     trailingIcon = {
-                        IconButton(onClick = { expanded = !expanded }) {
+                        IconButton(
+                            onClick = { expandedIngredientes = !expandedIngredientes },
+                            enabled = ingredientesInventario.isNotEmpty()
+                        ) {
                             Icon(
-                                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Expandir"
+                                imageVector = if (expandedIngredientes) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Seleccionar",
+                                tint = Color(0xFF2196F3)
                             )
                         }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = ingredientesInventario.isNotEmpty(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF2196F3),
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
                 
                 DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
+                    expanded = expandedIngredientes,
+                    onDismissRequest = { expandedIngredientes = false },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (ingredientesInventario.isEmpty()) {
@@ -141,41 +244,57 @@ fun EditarFormulaScreen(
                                 },
                                 onClick = {
                                     selectedIngrediente = ingrediente
-                                    expanded = false
+                                    expandedIngredientes = false
                                 }
                             )
                         }
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Campo cantidad
+            ModernFormField(
                 value = cantidad,
                 onValueChange = { cantidad = it },
-                label = { Text("Cantidad por litro") },
-                modifier = Modifier.fillMaxWidth()
+                label = "Cantidad por litro",
+                icon = Icons.Default.Scale,
+                color = Color(0xFF4CAF50)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Dropdown para seleccionar unidad de medida
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Selector de unidad
             Box {
                 OutlinedTextField(
                     value = unidadSeleccionada,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Unidad de medida") },
-                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Straighten,
+                            contentDescription = null,
+                            tint = Color(0xFFFF9800)
+                        )
+                    },
                     trailingIcon = {
                         IconButton(onClick = { expandedUnidades = !expandedUnidades }) {
                             Icon(
                                 imageVector = if (expandedUnidades) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = "Expandir unidades"
+                                contentDescription = "Expandir unidades",
+                                tint = Color(0xFFFF9800)
                             )
                         }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFFF9800),
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
                 
                 DropdownMenu(
@@ -194,32 +313,59 @@ fun EditarFormulaScreen(
                     }
                 }
             }
-
-            // Mostrar información del ingrediente seleccionado
+            
+            // Información del ingrediente seleccionado
             selectedIngrediente?.let { ingrediente ->
+                Spacer(modifier = Modifier.height(12.dp))
+                
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "Información del ingrediente:",
+                            text = "Información del insumo",
                             style = MaterialTheme.typography.titleSmall,
+                            color = Color(0xFF1976D2),
                             fontWeight = FontWeight.Bold
                         )
-                        Text("Unidad: ${ingrediente.unidad}")
-                        Text("Costo por unidad: $${String.format("%.2f", ingrediente.costoPorUnidad)}")
-                        Text("Stock disponible: ${ingrediente.cantidadDisponible}")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Unidad: ${ingrediente.unidad}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666)
+                            )
+                            Text(
+                                text = "Stock: ${ingrediente.cantidadDisponible}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Costo: $${String.format("%.2f", ingrediente.costoPorUnidad)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF1976D2),
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
-
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Botón agregar ingrediente
             Button(
                 onClick = {
                     if (selectedIngrediente != null && cantidad.isNotBlank() && unidadSeleccionada.isNotBlank()) {
-                        // Calcular el costo basado en la unidad seleccionada
                         val costoCalculado = calcularCostoPorUnidad(
                             ingrediente = selectedIngrediente!!,
                             unidadSeleccionada = unidadSeleccionada
@@ -240,81 +386,195 @@ fun EditarFormulaScreen(
                 },
                 enabled = selectedIngrediente != null && cantidad.isNotBlank() && unidadSeleccionada.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF944D2E))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Agregar ingrediente", color = Color.White)
-            }
-
-            if (listaIngredientes.isNotEmpty()) {
-                Text(
-                    text = "Insumos añadidos:",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
                 )
-
-                listaIngredientes.forEachIndexed { index, ingrediente ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "${ingrediente.nombre} - ${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costoPorUnidad}",
-                            modifier = Modifier.weight(1f)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Agregar insumo", color = Color.White, fontWeight = FontWeight.Medium)
+            }
+            
+            // Lista de ingredientes agregados
+            if (listaIngredientes.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text(
+                    text = "Insumos agregados",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    itemsIndexed(listaIngredientes) { index, ingrediente ->
+                        EditIngredientCard(
+                            ingrediente = ingrediente,
+                            onDelete = { listaIngredientes.removeAt(index) }
                         )
-                        IconButton(onClick = { listaIngredientes.removeAt(index) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar")
-                        }
                     }
                 }
-
-                // Mostrar costo total
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Costo total
                 val costoTotal = listaIngredientes.sumOf { 
                     it.cantidad.toDoubleOrNull()?.let { cantidad -> 
                         cantidad * it.costoPorUnidad 
                     } ?: 0.0 
                 }
                 
-                if (listaIngredientes.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Costo total por litro:",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "$${String.format("%.2f", costoTotal)}",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = Color(0xFF944D2E),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-
-            Button(
-                onClick = {
-                    if (nombreFormula.isNotBlank() && listaIngredientes.isNotEmpty()) {
-                        viewModel.actualizarFormula(
-                            formulaId = formula.formula.id,
-                            nombre = nombreFormula,
-                            ingredientes = listaIngredientes.toList()
+                        Text(
+                            text = "Costo total por litro",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "$${String.format("%.2f", costoTotal)}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE8DC))
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // Botón actualizar fórmula
+                Button(
+                    onClick = {
+                        if (nombreFormula.isNotBlank() && listaIngredientes.isNotEmpty()) {
+                            viewModel.actualizarFormula(
+                                formulaId = formula.formula.id,
+                                nombre = nombreFormula,
+                                ingredientes = listaIngredientes.toList()
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Actualizar fórmula", color = Color.White, fontWeight = FontWeight.Medium)
+                }
+            }
+        }
+        
+        // Snackbar
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun ModernFormField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = color,
+            unfocusedBorderColor = Color(0xFFE0E0E0)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+fun EditIngredientCard(
+    ingrediente: Ingrediente,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Text("Actualizar fórmula", color = Color(0xFF944D2E))
+                Text(
+                    text = ingrediente.nombre,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "${ingrediente.cantidad} ${ingrediente.unidad} - $${String.format("%.2f", ingrediente.costoPorUnidad)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF666666)
+                )
+            }
+            
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        color = Color(0xFFFFEBEE),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Eliminar",
+                    tint = Color(0xFFF44336),
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }

@@ -1,11 +1,10 @@
 package com.fjrh.FabrikApp.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,301 +12,403 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.fjrh.FabrikApp.ui.theme.FabrikAppBlue
-import com.fjrh.FabrikApp.ui.theme.FabrikAppBlueDark
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.fjrh.FabrikApp.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.MainMenuViewModel
+import com.fjrh.FabrikApp.ui.components.FabrikBottomNavigation
 
 @Composable
 fun MainMenuScreen(
     navController: NavController,
     viewModel: MainMenuViewModel = hiltViewModel()
 ) {
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-                    .background(
-            Brush.verticalGradient(
-                colors = listOf(
-                    FabrikAppBlue,      // Azul principal de FabrikApp
-                    FabrikAppBlueDark   // Azul oscuro de FabrikApp
-                )
-            )
-        )
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .background(Color(0xFFF8F9FA))
     ) {
-        // HEADER CON MÉTRICAS
-        item {
-            HeaderSection(viewModel)
-        }
-
-        // SECCIÓN PREPARACIÓN
-        item {
-            WorkflowSection(
-                title = "📦 PREPARACIÓN",
-                icon = Icons.Default.Inventory,
-                color = Color(0xFF4CAF50),
-                items = listOf(
-                    MenuItem("Inventario", Icons.Default.Inventory, "Gestionar insumos") { navController.navigate("inventario") },
-                    MenuItem("Fórmulas", Icons.Default.Science, "Ver fórmulas existentes") { navController.navigate("formulas") },
-                    MenuItem("Nueva Fórmula", Icons.Default.Add, "Crear nueva fórmula") { navController.navigate("nueva_formula") }
-                )
-            )
-        }
-
-        // SECCIÓN PRODUCCIÓN
-        item {
-            WorkflowSection(
-                title = "🏭 PRODUCCIÓN",
-                icon = Icons.Default.Factory,
-                color = Color(0xFF2196F3),
-                items = listOf(
-                    MenuItem("Producción", Icons.Default.Factory, "Iniciar producción") { navController.navigate("produccion") },
-                    MenuItem("Stock Productos", Icons.Default.Inventory, "Ver stock terminado") { navController.navigate("stock_productos") }
-                )
-            )
-        }
-
-        // SECCIÓN GESTIÓN COMERCIAL
-        item {
-            WorkflowSection(
-                title = "💼 GESTIÓN COMERCIAL",
-                icon = Icons.Default.ShoppingCart,
-                color = Color(0xFFFF9800),
-                items = listOf(
-                    MenuItem("Ventas", Icons.Default.ShoppingCart, "Registrar ventas") { navController.navigate("ventas") },
-                    MenuItem("Pedidos Proveedor", Icons.Default.LocalShipping, "Gestionar pedidos") { navController.navigate("pedidos_proveedor") },
-                    MenuItem("Balance", Icons.Default.AccountBalance, "Ver balance financiero") { navController.navigate("balance") }
-                )
-            )
-        }
-
-        // SECCIÓN ANALÍTICAS
-        item {
-            WorkflowSection(
-                title = "📊 ANALÍTICAS",
-                icon = Icons.Default.History,
-                color = Color(0xFF9C27B0),
-                items = listOf(
-                    MenuItem("Historial", Icons.Default.History, "Ver historial de producción") { navController.navigate("historial") }
-                )
-            )
-        }
-
-        // SECCIÓN HERRAMIENTAS
-        item {
-            WorkflowSection(
-                title = "🛠️ HERRAMIENTAS",
-                icon = Icons.Default.Note,
-                color = Color(0xFF607D8B),
-                items = listOf(
-                    MenuItem("Notas", Icons.Default.Note, "Notas y recordatorios") { navController.navigate("notas") },
-                    MenuItem("Configuración", Icons.Default.Settings, "Configurar umbrales de stock") { navController.navigate("configuracion") }
-                )
-            )
-        }
-
-        // ESPACIO FINAL
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-fun HeaderSection(viewModel: MainMenuViewModel) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Logo
-        Image(
-                            painter = painterResource(id = R.drawable.fabrikapp_logo),
-                          contentDescription = "Logo FabrikApp",
-            modifier = Modifier.size(120.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Título
-        Text(
-            text = "FabrikApp Factory",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Subtítulo
-        Text(
-            text = "Sistema de Gestión Industrial",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.8f)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Métricas rápidas con datos reales
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(top = 60.dp)
+                .padding(bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            MetricCard("Ventas Hoy", viewModel.formatearVentasHoy(), Color(0xFF4CAF50))
-            MetricCard("Stock Bajo", viewModel.formatearStockBajo(), Color(0xFFFF5722))
-            MetricCard("Producción", viewModel.formatearProduccionHoy(), Color(0xFF2196F3))
-        }
-    }
-}
-
-@Composable
-fun MetricCard(title: String, value: String, color: Color) {
-    Card(
-        modifier = Modifier
-            .padding(horizontal = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.1f)
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                color = color,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun WorkflowSection(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color,
-    items: List<MenuItem>
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.05f)
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Header de la sección
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+            item { 
+                WelcomeHeader(
+                    onSettingsClick = { navController.navigate("configuracion") }
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Items de la sección
-            items.forEach { item ->
-                WorkflowMenuItem(item = item)
-                if (item != items.last()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+            item { MainTrialBanner() }
+            item { MainFeaturesSection(navController) }
+            item { 
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    MainFeatureCard(
+                        icon = Icons.Default.Inventory,
+                        title = "Stock Productos",
+                        onClick = { navController.navigate("stock_productos") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    MainFeatureCard(
+                        icon = Icons.Default.History,
+                        title = "Historial",
+                        onClick = { navController.navigate("historial") },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
+            item { MainKPIsSection() }
+            item { MainQuickAccessSection(navController) }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+        
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        ) {
+            FabrikBottomNavigation(navController)
         }
     }
 }
 
 @Composable
-fun WorkflowMenuItem(item: MenuItem) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.1f)
-        ),
-        shape = RoundedCornerShape(12.dp)
+fun WelcomeHeader(
+    onSettingsClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Text(
+            text = "Hola, Francisco",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color(0xFF1A1A1A),
+            fontWeight = FontWeight.Bold
+        )
+        
+        IconButton(
+            onClick = onSettingsClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .clickable { item.onClick() },
-            verticalAlignment = Alignment.CenterVertically
+                .size(40.dp)
+                .background(
+                    color = Color.White,
+                    shape = CircleShape
+                )
         ) {
             Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = item.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
-            
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Configuración",
+                tint = Color(0xFF1976D2),
                 modifier = Modifier.size(20.dp)
             )
         }
     }
 }
 
-data class MenuItem(
-    val title: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val description: String,
-    val onClick: () -> Unit
-)
+@Composable
+fun MainTrialBanner() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Período de prueba de 7 días",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1976D2),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Restan 7 días",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1976D2)
+                )
+            }
+            
+            Button(
+                onClick = { /* Activar suscripción */ },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Activar",
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MainFeaturesSection(navController: NavController) {
+    Column {
+        Text(
+            text = "Funciones principales",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color(0xFF1A1A1A),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        // Grid 2x2
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MainFeatureCard(
+                    icon = Icons.Default.Inventory,
+                    title = "Gestión de inventario",
+                    onClick = { navController.navigate("inventario") },
+                    modifier = Modifier.weight(1f)
+                )
+                MainFeatureCard(
+                    icon = Icons.Default.Science,
+                    title = "Control de producción",
+                    onClick = { navController.navigate("produccion") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MainFeatureCard(
+                    icon = Icons.Default.Description,
+                    title = "Fórmulas de producción",
+                    onClick = { navController.navigate("formulas") },
+                    modifier = Modifier.weight(1f)
+                )
+                MainFeatureCard(
+                    icon = Icons.Default.AttachMoney,
+                    title = "Ventas y Finanzas",
+                    onClick = { navController.navigate("finanzas_hub") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MainKPIsSection() {
+    Column {
+        Text(
+            text = "KPIs",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color(0xFF1A1A1A),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        // Grid 2x2 de KPIs
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MainKPICard("Stock OK", "8", Color(0xFF4CAF50), Modifier.weight(1f))
+                MainKPICard("Stock bajo", "3", Color(0xFFFF9800), Modifier.weight(1f))
+            }
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                MainKPICard("Producción hoy", "2", Color(0xFF2196F3), Modifier.weight(1f))
+                MainKPICard("Pedidos pendientes", "1", Color(0xFFFF5722), Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+fun MainQuickAccessSection(navController: NavController) {
+    Column {
+        Text(
+            text = "Accesos rápidos",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color(0xFF1A1A1A),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            QuickAccessButton(
+                icon = Icons.Default.Add,
+                label = "Nuevo lote",
+                onClick = { navController.navigate("produccion") },
+                modifier = Modifier.weight(1f)
+            )
+            QuickAccessButton(
+                icon = Icons.Default.WaterDrop,
+                label = "Añadir insumo",
+                onClick = { navController.navigate("agregar_ingrediente") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(6.dp))
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            QuickAccessButton(
+                icon = Icons.Default.ShoppingCart,
+                label = "Registrar venta",
+                onClick = { navController.navigate("ventas") },
+                modifier = Modifier.weight(1f)
+            )
+            QuickAccessButton(
+                icon = Icons.Default.ShoppingCart,
+                label = "Nuevo pedido",
+                onClick = { navController.navigate("pedidos_proveedor") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun MainFeatureCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(60.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color(0xFF1976D2),
+                modifier = Modifier.size(20.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF1A1A1A),
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun MainKPICard(title: String, value: String, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(60.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF666666),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickAccessButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(55.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color(0xFF1976D2),
+                modifier = Modifier.size(18.dp)
+            )
+            
+            Spacer(modifier = Modifier.width(6.dp))
+            
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF1A1A1A),
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}

@@ -4,25 +4,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.fjrh.FabrikApp.data.local.entity.BalanceEntity
 import com.fjrh.FabrikApp.ui.viewmodel.BalanceViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BalanceScreen(
+    navController: NavController,
     viewModel: BalanceViewModel = hiltViewModel()
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -31,82 +33,144 @@ fun BalanceScreen(
     val totalEgresos by viewModel.totalEgresos.collectAsState()
     val utilidad = totalIngresos - totalEgresos
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Balance Financiero") },
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar movimiento")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp)
+                .padding(top = 60.dp)
+                .padding(bottom = 100.dp)
         ) {
+            // Header moderno
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color(0xFF1976D2)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Text(
+                        text = "Balance Financiero",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "${balance?.size ?: 0}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
             // Resumen financiero
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(8.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(20.dp)
                 ) {
-                    Text(
-                        text = "Resumen Financiero",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AccountBalance,
+                            contentDescription = null,
+                            tint = Color(0xFF1976D2),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Text(
+                            text = "Resumen Financiero",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color(0xFF1A1A1A),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                     
+                    // Estadísticas principales
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column {
-                            Text("Ingresos", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                "$${String.format("%.2f", totalIngresos)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFF4CAF50),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Column {
-                            Text("Egresos", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                "$${String.format("%.2f", totalEgresos)}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFFF44336),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        BalanceStatCard(
+                            title = "Ingresos",
+                            value = "$${String.format("%.2f", totalIngresos)}",
+                            color = Color(0xFF4CAF50),
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        BalanceStatCard(
+                            title = "Egresos",
+                            value = "$${String.format("%.2f", totalEgresos)}",
+                            color = Color(0xFFF44336),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    HorizontalDivider()
+                    HorizontalDivider(color = Color(0xFFE0E0E0))
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
+                    // Utilidad
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             "Utilidad",
                             style = MaterialTheme.typography.titleMedium,
+                            color = Color(0xFF1A1A1A),
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             "$${String.format("%.2f", utilidad)}",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.headlineMedium,
                             color = if (utilidad >= 0) Color(0xFF4CAF50) else Color(0xFFF44336),
                             fontWeight = FontWeight.Bold
                         )
@@ -114,11 +178,23 @@ fun BalanceScreen(
                     
                     if (utilidad < 0) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "⚠️ Pérdida operativa",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFF44336)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = Color(0xFFF44336),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "Pérdida operativa",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFF44336),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
@@ -129,77 +205,86 @@ fun BalanceScreen(
             Text(
                 text = "Movimientos Recientes",
                 style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF1A1A1A),
                 fontWeight = FontWeight.Bold
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
             if (balance.isNullOrEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No hay movimientos registrados")
-                }
+                BalanceEmptyState()
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     items(balance) { movimiento ->
-                        MovimientoCard(movimiento = movimiento)
+                        ModernMovimientoCard(movimiento = movimiento)
                     }
                 }
             }
         }
-
-        if (showAddDialog) {
-            AgregarMovimientoDialog(
-                onDismiss = { showAddDialog = false },
-                onMovimientoAgregado = { movimiento ->
-                    viewModel.agregarMovimiento(movimiento)
-                    showAddDialog = false
-                }
+        
+        // FAB para agregar movimiento
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(horizontal = 20.dp, vertical = 60.dp),
+            containerColor = Color(0xFF1976D2),
+            contentColor = Color.White
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Agregar movimiento",
+                modifier = Modifier.size(24.dp)
             )
         }
+        
+        // Snackbar
+        SnackbarHost(
+            hostState = remember { SnackbarHostState() },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+
+    if (showAddDialog) {
+        ModernAgregarMovimientoDialog(
+            onDismiss = { showAddDialog = false },
+            onMovimientoAgregado = { movimiento ->
+                viewModel.agregarMovimiento(movimiento)
+                showAddDialog = false
+            }
+        )
     }
 }
 
 @Composable
-fun MovimientoCard(movimiento: BalanceEntity) {
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-    val color = if (movimiento.tipo == "INGRESO") Color(0xFF4CAF50) else Color(0xFFF44336)
-    
+fun BalanceStatCard(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = movimiento.concepto,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = dateFormat.format(Date(movimiento.fecha)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                movimiento.descripcion?.let { desc ->
-                    Text(
-                        text = desc,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-            
             Text(
-                text = "${if (movimiento.tipo == "INGRESO") "+" else "-"}$${String.format("%.2f", movimiento.monto)}",
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF666666)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = value,
                 style = MaterialTheme.typography.titleMedium,
                 color = color,
                 fontWeight = FontWeight.Bold
@@ -209,7 +294,114 @@ fun MovimientoCard(movimiento: BalanceEntity) {
 }
 
 @Composable
-fun AgregarMovimientoDialog(
+fun ModernMovimientoCard(movimiento: BalanceEntity) {
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    val color = if (movimiento.tipo == "INGRESO") Color(0xFF4CAF50) else Color(0xFFF44336)
+    val icon = if (movimiento.tipo == "INGRESO") Icons.Default.TrendingUp else Icons.Default.TrendingDown
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(20.dp)
+                )
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = movimiento.concepto,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = dateFormat.format(Date(movimiento.fecha)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF999999)
+                    )
+                    movimiento.descripcion?.let { desc ->
+                        if (desc.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Card(
+                colors = CardDefaults.cardColors(containerColor = color),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "${if (movimiento.tipo == "INGRESO") "+" else "-"}$${String.format("%.2f", movimiento.monto)}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BalanceEmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountBalance,
+                contentDescription = null,
+                tint = Color(0xFFCCCCCC),
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No hay movimientos registrados",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF666666),
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Toca el botón + para registrar tu primer movimiento",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF999999),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernAgregarMovimientoDialog(
     onDismiss: () -> Unit,
     onMovimientoAgregado: (BalanceEntity) -> Unit
 ) {
@@ -220,50 +412,93 @@ fun AgregarMovimientoDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Movimiento") },
+        title = { 
+            Text(
+                text = "Nuevo Movimiento",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Selector de tipo
-                Row {
-                    Text("Tipo:", modifier = Modifier.padding(end = 16.dp))
-                    Row {
-                        RadioButton(
-                            selected = tipo == "INGRESO",
-                            onClick = { tipo = "INGRESO" }
-                        )
-                        Text("Ingreso", modifier = Modifier.padding(start = 8.dp))
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Row {
-                        RadioButton(
-                            selected = tipo == "EGRESO",
-                            onClick = { tipo = "EGRESO" }
-                        )
-                        Text("Egreso", modifier = Modifier.padding(start = 8.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = tipo == "INGRESO",
+                                onClick = { tipo = "INGRESO" },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color(0xFF4CAF50)
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "Ingreso",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF1A1A1A)
+                            )
+                        }
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = tipo == "EGRESO",
+                                onClick = { tipo = "EGRESO" },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color(0xFFF44336)
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "Egreso",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF1A1A1A)
+                            )
+                        }
                     }
                 }
 
-                OutlinedTextField(
+                BalanceFormField(
                     value = concepto,
                     onValueChange = { concepto = it },
-                    label = { Text("Concepto") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Concepto",
+                    icon = Icons.Default.Description,
+                    color = Color(0xFF1976D2)
                 )
 
-                OutlinedTextField(
+                BalanceFormField(
                     value = monto,
                     onValueChange = { monto = it },
-                    label = { Text("Monto") },
-                    modifier = Modifier.fillMaxWidth()
+                    label = "Monto",
+                    icon = Icons.Default.AttachMoney,
+                    color = if (tipo == "INGRESO") Color(0xFF4CAF50) else Color(0xFFF44336)
                 )
 
                 OutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción (opcional)") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF1976D2),
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
         },
@@ -282,15 +517,51 @@ fun AgregarMovimientoDialog(
                         onMovimientoAgregado(movimiento)
                     }
                 },
-                enabled = concepto.isNotBlank() && monto.isNotBlank()
+                enabled = concepto.isNotBlank() && monto.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Guardar")
+                Text("Guardar", color = Color.White, fontWeight = FontWeight.Medium)
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF666666))
+            ) {
                 Text("Cancelar")
             }
-        }
+        },
+        containerColor = Color.White,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+@Composable
+fun BalanceFormField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = color,
+            unfocusedBorderColor = Color(0xFFE0E0E0)
+        ),
+        shape = RoundedCornerShape(12.dp)
     )
 } 

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.layout.onSizeChanged
@@ -48,15 +48,13 @@ fun ConfiguracionScreen(
 ) {
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
-        var stockBajoProductos by remember { mutableStateOf("") }
+    var stockBajoProductos by remember { mutableStateOf("") }
     var stockAltoInsumos by remember { mutableStateOf("") }
     var stockMedioInsumos by remember { mutableStateOf("") }
     var stockBajoInsumos by remember { mutableStateOf("") }
     
     // Configuraciones adicionales
     var temaOscuro by remember { mutableStateOf(false) }
-    // var alertasStockBajo by remember { mutableStateOf(true) }
-    // var alertasStockAlto by remember { mutableStateOf(false) }
     var backupAutomatico by remember { mutableStateOf(true) }
     var frecuenciaBackup by remember { mutableStateOf("7") }
     
@@ -73,15 +71,13 @@ fun ConfiguracionScreen(
 
     // Cargar configuración inicial
     LaunchedEffect(Unit) {
-                        viewModel.configuracion.collect { config ->
-                    stockAltoProductos = config.stockAltoProductos.toString()
-                    stockMedioProductos = config.stockMedioProductos.toString()
-                    stockBajoProductos = config.stockBajoProductos.toString()
-                    stockAltoInsumos = config.stockAltoInsumos.toString()
-                    stockMedioInsumos = config.stockMedioInsumos.toString()
-                    stockBajoInsumos = config.stockBajoInsumos.toString()
-            // alertasStockBajo = config.alertasStockBajo
-            // alertasStockAlto = config.alertasStockAlto
+        viewModel.configuracion.collect { config ->
+            stockAltoProductos = config.stockAltoProductos.toString()
+            stockMedioProductos = config.stockMedioProductos.toString()
+            stockBajoProductos = config.stockBajoProductos.toString()
+            stockAltoInsumos = config.stockAltoInsumos.toString()
+            stockMedioInsumos = config.stockMedioInsumos.toString()
+            stockBajoInsumos = config.stockBajoInsumos.toString()
             backupAutomatico = config.backupAutomatico
             frecuenciaBackup = config.frecuenciaBackup.toString()
             temaOscuro = config.temaOscuro
@@ -97,8 +93,6 @@ fun ConfiguracionScreen(
             stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
             stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
             stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
-            // alertasStockBajo = alertasStockBajo,
-            // alertasStockAlto = alertasStockAlto,
             backupAutomatico = backupAutomatico,
             frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
             temaOscuro = temaOscuro
@@ -106,100 +100,240 @@ fun ConfiguracionScreen(
         viewModel.guardarConfiguracion(config)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Configuración",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showSaveDialog = true }) {
-                        Icon(Icons.Default.Save, contentDescription = "Guardar")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(top = 60.dp)
+                .padding(bottom = 100.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header con estadísticas
-            ConfiguracionHeader()
-            
-            // Secciones de configuración
-            ConfiguracionStockSection(
-                stockAltoProductos = stockAltoProductos,
-                stockMedioProductos = stockMedioProductos,
-                stockBajoProductos = stockBajoProductos,
-                stockAltoInsumos = stockAltoInsumos,
-                stockMedioInsumos = stockMedioInsumos,
-                stockBajoInsumos = stockBajoInsumos,
-                onStockAltoProductosChange = { stockAltoProductos = it },
-                onStockMedioProductosChange = { stockMedioProductos = it },
-                onStockBajoProductosChange = { stockBajoProductos = it },
-                onStockAltoInsumosChange = { stockAltoInsumos = it },
-                onStockMedioInsumosChange = { stockMedioInsumos = it },
-                onStockBajoInsumosChange = { stockBajoInsumos = it }
-            )
-            
-            // ConfiguracionAlertasSection(
-            //     alertasStockBajo = alertasStockBajo,
-            //     alertasStockAlto = alertasStockAlto,
-            //     onAlertasStockBajoChange = { alertasStockBajo = it },
-            //     onAlertasStockAltoChange = { alertasStockAlto = it }
-            // )
-            
-            ConfiguracionBackupSection(
-                backupAutomatico = backupAutomatico,
-                frecuenciaBackup = frecuenciaBackup,
-                onBackupAutomaticoChange = { backupAutomatico = it },
-                onFrecuenciaBackupChange = { frecuenciaBackup = it }
-            )
-            
-            ConfiguracionTemaSection(
-                temaOscuro = temaOscuro,
-                onTemaOscuroChange = { temaOscuro = it }
-            )
-            
-            
-            
-                            ConfiguracionDatosSection(
-                    onExportarClick = { showExportDialog = true },
-                    onImportarClick = { showImportDialog = true },
-                    onResetClick = { showResetDialog = true },
-                    onLimpiarDatosClick = { showLimpiarDatosDialog = true }
+            // Header moderno
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF1A1A1A),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { navController.popBackStack() }
                 )
-            
-            Spacer(modifier = Modifier.height(32.dp))
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Text(
+                    text = "Configuración",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = Color(0xFF1976D2),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Descripción
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Configuración del Sistema",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Personaliza FabrikApp según tus necesidades",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // Umbrales de Stock
+            ModernConfigSection(
+                title = "Umbrales de Stock",
+                icon = Icons.Default.Inventory,
+                color = Color(0xFF4CAF50)
+            ) {
+                // Productos Terminados
+                ModernConfigSubsection(
+                    title = "Productos Terminados",
+                    subtitle = "Niveles de stock para productos terminados"
+                ) {
+                    ModernConfigField(
+                        value = stockAltoProductos,
+                        onValueChange = { if (validarPrecio(it)) stockAltoProductos = it },
+                        label = "Stock Alto (L)",
+                        icon = Icons.Default.TrendingUp,
+                        color = Color(0xFF4CAF50)
+                    )
+                    
+                    ModernConfigField(
+                        value = stockMedioProductos,
+                        onValueChange = { if (validarPrecio(it)) stockMedioProductos = it },
+                        label = "Stock Medio (L)",
+                        icon = Icons.Default.TrendingFlat,
+                        color = Color(0xFFFF9800)
+                    )
+                    
+                    ModernConfigField(
+                        value = stockBajoProductos,
+                        onValueChange = { if (validarPrecio(it)) stockBajoProductos = it },
+                        label = "Stock Bajo (L)",
+                        icon = Icons.Default.TrendingDown,
+                        color = Color(0xFFF44336)
+                    )
+                }
+                
+                // Insumos
+                ModernConfigSubsection(
+                    title = "Insumos",
+                    subtitle = "Niveles de stock para materias primas"
+                ) {
+                    ModernConfigField(
+                        value = stockAltoInsumos,
+                        onValueChange = { if (validarPrecio(it)) stockAltoInsumos = it },
+                        label = "Stock Alto (kg)",
+                        icon = Icons.Default.TrendingUp,
+                        color = Color(0xFF4CAF50)
+                    )
+                    
+                    ModernConfigField(
+                        value = stockMedioInsumos,
+                        onValueChange = { if (validarPrecio(it)) stockMedioInsumos = it },
+                        label = "Stock Medio (kg)",
+                        icon = Icons.Default.TrendingFlat,
+                        color = Color(0xFFFF9800)
+                    )
+                    
+                    ModernConfigField(
+                        value = stockBajoInsumos,
+                        onValueChange = { if (validarPrecio(it)) stockBajoInsumos = it },
+                        label = "Stock Bajo (kg)",
+                        icon = Icons.Default.TrendingDown,
+                        color = Color(0xFFF44336)
+                    )
+                }
+            }
+
+            // Backup
+            ModernConfigSection(
+                title = "Backup",
+                icon = Icons.Default.Backup,
+                color = Color(0xFF2196F3)
+            ) {
+                ModernConfigSwitch(
+                    title = "Backup Automático",
+                    subtitle = "Realiza copias de seguridad automáticamente",
+                    checked = backupAutomatico,
+                    onCheckedChange = { backupAutomatico = it },
+                    icon = Icons.Default.CloudUpload
+                )
+                
+                if (backupAutomatico) {
+                    ModernConfigField(
+                        value = frecuenciaBackup,
+                        onValueChange = { if (it.matches(Regex("^\\d{0,2}$"))) frecuenciaBackup = it },
+                        label = "Frecuencia (días)",
+                        icon = Icons.Default.Schedule,
+                        color = Color(0xFF2196F3)
+                    )
+                }
+            }
+
+            // Tema
+            ModernConfigSection(
+                title = "Tema",
+                icon = Icons.Default.Palette,
+                color = Color(0xFF9C27B0)
+            ) {
+                ModernConfigSwitch(
+                    title = "Tema Oscuro",
+                    subtitle = "Activa el modo oscuro para la aplicación",
+                    checked = temaOscuro,
+                    onCheckedChange = { temaOscuro = it },
+                    icon = Icons.Default.DarkMode
+                )
+            }
+
+            // Datos
+            ModernConfigSection(
+                title = "Datos",
+                icon = Icons.Default.Storage,
+                color = Color(0xFFFF5722)
+            ) {
+                ModernConfigButton(
+                    title = "Exportar Datos",
+                    subtitle = "Descarga una copia de todos los datos",
+                    onClick = { showExportDialog = true },
+                    icon = Icons.Default.Download,
+                    color = Color(0xFF4CAF50)
+                )
+                
+                ModernConfigButton(
+                    title = "Importar Datos",
+                    subtitle = "Restaura datos desde un archivo",
+                    onClick = { showImportDialog = true },
+                    icon = Icons.Default.Upload,
+                    color = Color(0xFF2196F3)
+                )
+                
+                ModernConfigButton(
+                    title = "Restablecer Configuración",
+                    subtitle = "Vuelve a la configuración por defecto",
+                    onClick = { showResetDialog = true },
+                    icon = Icons.Default.Restore,
+                    color = Color(0xFFFF9800)
+                )
+                
+                ModernConfigButton(
+                    title = "Limpiar Todos los Datos",
+                    subtitle = "Elimina todos los datos de la aplicación",
+                    onClick = { showLimpiarDatosDialog = true },
+                    icon = Icons.Default.DeleteForever,
+                    color = Color(0xFFD32F2F)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Indicador de carga
             if (isLoading) {
                 Box(
-                modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color(0xFF1976D2)
                     )
                 }
             }
@@ -207,15 +341,14 @@ fun ConfiguracionScreen(
             // Mensajes de estado
             mensaje?.let { msg ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = if (msg.contains("Error")) 
                             Color(0xFFFFEBEE) 
                         else 
                             Color(0xFFE8F5E8)
-                    )
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -265,7 +398,7 @@ fun ConfiguracionScreen(
 
         // Diálogos
         if (showSaveDialog) {
-            ConfiguracionSaveDialog(
+            ModernConfigSaveDialog(
                 onConfirm = {
                     val config = ConfiguracionStock(
                         stockAltoProductos = stockAltoProductos.toFloatOrNull() ?: 100f,
@@ -274,8 +407,6 @@ fun ConfiguracionScreen(
                         stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
                         stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
                         stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
-                        // alertasStockBajo = alertasStockBajo,
-                        // alertasStockAlto = alertasStockAlto,
                         backupAutomatico = backupAutomatico,
                         frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
                         temaOscuro = temaOscuro
@@ -288,7 +419,7 @@ fun ConfiguracionScreen(
         }
         
         if (showExportDialog) {
-            ConfiguracionExportDialog(
+            ModernConfigExportDialog(
                 onConfirm = {
                     viewModel.exportarDatos()
                     showExportDialog = false
@@ -298,7 +429,7 @@ fun ConfiguracionScreen(
         }
         
         if (showImportDialog) {
-            ConfiguracionImportDialog(
+            ModernConfigImportDialog(
                 archivosBackup = archivosBackup,
                 onImportarArchivo = { archivo ->
                     viewModel.importarDatos(archivo)
@@ -309,7 +440,7 @@ fun ConfiguracionScreen(
         }
         
         if (showResetDialog) {
-            ConfiguracionResetDialog(
+            ModernConfigResetDialog(
                 onConfirm = {
                     viewModel.resetearConfiguracion()
                     showResetDialog = false
@@ -319,7 +450,7 @@ fun ConfiguracionScreen(
         }
         
         if (showLimpiarDatosDialog) {
-            ConfiguracionLimpiarDatosDialog(
+            ModernConfigLimpiarDatosDialog(
                 onConfirm = {
                     viewModel.limpiarTodosLosDatos()
                     showLimpiarDatosDialog = false
@@ -331,269 +462,20 @@ fun ConfiguracionScreen(
 }
 
 @Composable
-fun ConfiguracionHeader() {
-            Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-            ) {
-                Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-                    Text(
-                text = "Configuración del Sistema",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            
-            Text(
-                text = "Personaliza FabrikApp según tus necesidades",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-@Composable
-fun ConfiguracionStockSection(
-    stockAltoProductos: String,
-    stockMedioProductos: String,
-    stockBajoProductos: String,
-    stockAltoInsumos: String,
-    stockMedioInsumos: String,
-    stockBajoInsumos: String,
-    onStockAltoProductosChange: (String) -> Unit,
-    onStockMedioProductosChange: (String) -> Unit,
-    onStockBajoProductosChange: (String) -> Unit,
-    onStockAltoInsumosChange: (String) -> Unit,
-    onStockMedioInsumosChange: (String) -> Unit,
-    onStockBajoInsumosChange: (String) -> Unit
-) {
-    ConfiguracionSection(
-        title = "📊 Umbrales de Stock",
-        icon = Icons.Default.Inventory
-    ) {
-        // Productos Terminados
-        ConfiguracionSubsection(
-            title = "🏭 Productos Terminados",
-            subtitle = "Configura los niveles de stock para productos terminados"
-        ) {
-            ConfiguracionTextField(
-                value = stockAltoProductos,
-                onValueChange = { if (validarPrecio(it)) onStockAltoProductosChange(it) },
-                label = "Stock Alto (L)",
-                icon = Icons.Default.TrendingUp,
-                color = Color(0xFF4CAF50)
-            )
-            
-            ConfiguracionTextField(
-                value = stockMedioProductos,
-                onValueChange = { if (validarPrecio(it)) onStockMedioProductosChange(it) },
-                label = "Stock Medio (L)",
-                icon = Icons.Default.TrendingFlat,
-                color = Color(0xFFFF9800)
-            )
-            
-            ConfiguracionTextField(
-                value = stockBajoProductos,
-                onValueChange = { if (validarPrecio(it)) onStockBajoProductosChange(it) },
-                label = "Stock Bajo (L)",
-                icon = Icons.Default.TrendingDown,
-                color = Color(0xFFF44336)
-            )
-        }
-        
-        // Insumos
-        ConfiguracionSubsection(
-            title = "🧪 Insumos",
-            subtitle = "Configura los niveles de stock para materias primas"
-        ) {
-            ConfiguracionTextField(
-                value = stockAltoInsumos,
-                onValueChange = { if (validarPrecio(it)) onStockAltoInsumosChange(it) },
-                label = "Stock Alto (kg)",
-                icon = Icons.Default.TrendingUp,
-                color = Color(0xFF4CAF50)
-            )
-            
-            ConfiguracionTextField(
-                        value = stockMedioInsumos,
-                onValueChange = { if (validarPrecio(it)) onStockMedioInsumosChange(it) },
-                label = "Stock Medio (kg)",
-                icon = Icons.Default.TrendingFlat,
-                color = Color(0xFFFF9800)
-            )
-            
-            ConfiguracionTextField(
-                value = stockBajoInsumos,
-                onValueChange = { if (validarPrecio(it)) onStockBajoInsumosChange(it) },
-                label = "Stock Bajo (kg)",
-                icon = Icons.Default.TrendingDown,
-                color = Color(0xFFF44336)
-            )
-        }
-    }
-}
-
-// @Composable
-// fun ConfiguracionAlertasSection(
-//     alertasStockBajo: Boolean,
-//     alertasStockAlto: Boolean,
-//     onAlertasStockBajoChange: (Boolean) -> Unit,
-//     onAlertasStockAltoChange: (Boolean) -> Unit
-// ) {
-//     ConfiguracionSection(
-//         title = "🔔 Alertas",
-//         icon = Icons.Default.Notifications
-//     ) {
-//         ConfiguracionSwitch(
-//             title = "Alertas de Stock Bajo",
-//             subtitle = "Recibe notificaciones cuando el stock esté bajo",
-//             checked = alertasStockBajo,
-//             onCheckedChange = onAlertasStockBajoChange,
-//             icon = Icons.Default.Warning
-//         )
-//         
-//         ConfiguracionSwitch(
-//             title = "Alertas de Stock Alto",
-//             subtitle = "Recibe notificaciones cuando el stock esté alto",
-//             checked = alertasStockAlto,
-//             onCheckedChange = onAlertasStockAltoChange,
-//             icon = Icons.Default.Info
-//         )
-//     }
-// }
-
-@Composable
-fun ConfiguracionBackupSection(
-    backupAutomatico: Boolean,
-    frecuenciaBackup: String,
-    onBackupAutomaticoChange: (Boolean) -> Unit,
-    onFrecuenciaBackupChange: (String) -> Unit
-) {
-    ConfiguracionSection(
-        title = "💾 Backup",
-        icon = Icons.Default.Backup
-    ) {
-        ConfiguracionSwitch(
-            title = "Backup Automático",
-            subtitle = "Realiza copias de seguridad automáticamente",
-            checked = backupAutomatico,
-            onCheckedChange = onBackupAutomaticoChange,
-            icon = Icons.Default.CloudUpload
-        )
-        
-        if (backupAutomatico) {
-            ConfiguracionTextField(
-                value = frecuenciaBackup,
-                onValueChange = { if (it.matches(Regex("^\\d{0,2}$"))) onFrecuenciaBackupChange(it) },
-                label = "Frecuencia (días)",
-                icon = Icons.Default.Schedule,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}
-
-@Composable
-fun ConfiguracionTemaSection(
-    temaOscuro: Boolean,
-    onTemaOscuroChange: (Boolean) -> Unit
-) {
-    ConfiguracionSection(
-        title = "🎨 Tema",
-        icon = Icons.Default.Palette
-    ) {
-        ConfiguracionSwitch(
-            title = "Tema Oscuro",
-            subtitle = "Activa el modo oscuro para la aplicación",
-            checked = temaOscuro,
-            onCheckedChange = onTemaOscuroChange,
-            icon = Icons.Default.DarkMode
-        )
-    }
-}
-
-
-
-@Composable
-fun ConfiguracionDatosSection(
-    onExportarClick: () -> Unit,
-    onImportarClick: () -> Unit,
-    onResetClick: () -> Unit,
-    onLimpiarDatosClick: () -> Unit
-) {
-    ConfiguracionSection(
-        title = "📁 Datos",
-        icon = Icons.Default.Storage
-    ) {
-        ConfiguracionButton(
-            title = "Exportar Datos",
-            subtitle = "Descarga una copia de todos los datos",
-            onClick = onExportarClick,
-            icon = Icons.Default.Download,
-            color = Color(0xFF4CAF50)
-        )
-        
-        ConfiguracionButton(
-            title = "Importar Datos",
-            subtitle = "Restaura datos desde un archivo",
-            onClick = onImportarClick,
-            icon = Icons.Default.Upload,
-            color = Color(0xFF2196F3)
-        )
-        
-        ConfiguracionButton(
-            title = "Restablecer Configuración",
-            subtitle = "Vuelve a la configuración por defecto",
-            onClick = onResetClick,
-            icon = Icons.Default.Restore,
-            color = Color(0xFFFF5722)
-        )
-        
-        ConfiguracionButton(
-            title = "Limpiar Todos los Datos",
-            subtitle = "Elimina todos los datos de la aplicación",
-            onClick = onLimpiarDatosClick,
-            icon = Icons.Default.DeleteForever,
-            color = Color(0xFFD32F2F)
-        )
-    }
-}
-
-@Composable
-fun ConfiguracionSection(
+fun ModernConfigSection(
     title: String,
     icon: ImageVector,
+    color: Color,
     content: @Composable () -> Unit
 ) {
-            Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(20.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -602,7 +484,7 @@ fun ConfiguracionSection(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = color,
                     modifier = Modifier.size(24.dp)
                 )
                 
@@ -612,7 +494,7 @@ fun ConfiguracionSection(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFF1A1A1A)
                 )
             }
             
@@ -624,25 +506,25 @@ fun ConfiguracionSection(
 }
 
 @Composable
-fun ConfiguracionSubsection(
+fun ModernConfigSubsection(
     title: String,
     subtitle: String,
     content: @Composable () -> Unit
-            ) {
-                Column(
+) {
+    Column(
         modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
+    ) {
+        Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-                    )
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A1A1A)
+        )
         
-                                         Text(
+        Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = Color(0xFF666666)
         )
         
         Spacer(modifier = Modifier.height(12.dp))
@@ -654,7 +536,7 @@ fun ConfiguracionSubsection(
 }
 
 @Composable
-fun ConfiguracionTextField(
+fun ModernConfigField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -676,15 +558,19 @@ fun ConfiguracionTextField(
             keyboardType = KeyboardType.Decimal
         ),
         modifier = Modifier.fillMaxWidth(),
-
-        singleLine = true
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = color,
+            unfocusedBorderColor = Color(0xFFE0E0E0)
+        ),
+        shape = RoundedCornerShape(12.dp)
     )
     
     Spacer(modifier = Modifier.height(8.dp))
 }
 
 @Composable
-fun ConfiguracionSwitch(
+fun ModernConfigSwitch(
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -700,7 +586,7 @@ fun ConfiguracionSwitch(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = Color(0xFF1976D2),
             modifier = Modifier.size(24.dp)
         )
         
@@ -709,28 +595,33 @@ fun ConfiguracionSwitch(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-                     Text(
+            Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium
-                     )
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF1A1A1A)
+            )
             
-                     Text(
+            Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = Color(0xFF666666)
             )
         }
         
-        Checkbox(
+        Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = Color(0xFF1976D2)
+            )
         )
     }
 }
 
 @Composable
-fun ConfiguracionButton(
+fun ModernConfigButton(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
@@ -780,20 +671,20 @@ fun ConfiguracionButton(
 }
 
 @Composable
-fun ConfiguracionSaveDialog(
+fun ModernConfigSaveDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-            AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
-                title = { Text("Guardar Configuración") },
-                text = { Text("¿Estás seguro de que quieres guardar estos cambios?") },
-                confirmButton = {
+        title = { Text("Guardar Configuración") },
+        text = { Text("¿Estás seguro de que quieres guardar estos cambios?") },
+        confirmButton = {
             Button(onClick = onConfirm) {
-                        Text("Guardar")
-                    }
-                },
-                dismissButton = {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar")
             }
@@ -802,7 +693,7 @@ fun ConfiguracionSaveDialog(
 }
 
 @Composable
-fun ConfiguracionExportDialog(
+fun ModernConfigExportDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -817,14 +708,14 @@ fun ConfiguracionExportDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                        Text("Cancelar")
-                    }
-                }
-            )
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable
-fun ConfiguracionImportDialog(
+fun ModernConfigImportDialog(
     archivosBackup: List<File>,
     onImportarArchivo: (File) -> Unit,
     onDismiss: () -> Unit
@@ -849,8 +740,9 @@ fun ConfiguracionImportDialog(
                                     .padding(vertical = 4.dp)
                                     .clickable { onImportarArchivo(archivo) },
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                )
+                                    containerColor = Color(0xFFF5F5F5)
+                                ),
+                                shape = RoundedCornerShape(8.dp)
                             ) {
                                 Column(
                                     modifier = Modifier.padding(12.dp)
@@ -863,7 +755,7 @@ fun ConfiguracionImportDialog(
                                     Text(
                                         text = "Creado: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(archivo.lastModified()))}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = Color(0xFF666666)
                                     )
                                 }
                             }
@@ -881,7 +773,7 @@ fun ConfiguracionImportDialog(
 }
 
 @Composable
-fun ConfiguracionResetDialog(
+fun ModernConfigResetDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -908,7 +800,7 @@ fun ConfiguracionResetDialog(
 }
 
 @Composable
-fun ConfiguracionLimpiarDatosDialog(
+fun ModernConfigLimpiarDatosDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {

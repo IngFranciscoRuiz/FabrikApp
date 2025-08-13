@@ -70,7 +70,7 @@ class ConfiguracionViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                configuracionDataStore.guardarConfiguracion(config)
+            configuracionDataStore.guardarConfiguracion(config)
                 _mensaje.value = "Configuración guardada exitosamente"
             } catch (e: Exception) {
                 _mensaje.value = "Error al guardar configuración: ${e.message}"

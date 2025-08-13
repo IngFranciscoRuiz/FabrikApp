@@ -40,18 +40,24 @@ fun SplashScreen(
         startAnimation = true
         delay(3000L)
         
-        // Verificar si ya se mostró el onboarding
-        val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
-        
-        if (hasSeenOnboarding) {
-            navController.navigate("menu") {
-                popUpTo("splash") { inclusive = true }
-            }
-        } else {
-            navController.navigate("onboarding") {
-                popUpTo("splash") { inclusive = true }
-            }
+        // Navegar a la pantalla de selección
+        navController.navigate("app_selector") {
+            popUpTo("splash") { inclusive = true }
         }
+        
+        // Código original comentado para referencia:
+        // // Verificar si ya se mostró el onboarding
+        // val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
+        // 
+        // if (hasSeenOnboarding) {
+        //     navController.navigate("menu") {
+        //         popUpTo("splash") { inclusive = true }
+        //     }
+        // } else {
+        //     navController.navigate("onboarding") {
+        //         popUpTo("splash") { inclusive = true }
+        //     }
+        // }
     }
 
     Box(
