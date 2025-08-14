@@ -72,8 +72,8 @@ fun NotasScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     
                     Text(
-                        text = "Notas y Recordatorios",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = "Notas",
+                        style = MaterialTheme.typography.headlineMedium,
                         color = Color(0xFF1A1A1A),
                         fontWeight = FontWeight.Bold
                     )
@@ -103,12 +103,6 @@ fun NotasScreen(
                     title = "Total",
                     value = notas.size.toString(),
                     color = Color(0xFF2196F3),
-                    modifier = Modifier.weight(1f)
-                )
-                NotasStatCard(
-                    title = "Recordatorios",
-                    value = notas.count { it.esRecordatorio }.toString(),
-                    color = Color(0xFFFF9800),
                     modifier = Modifier.weight(1f)
                 )
                 NotasStatCard(
@@ -220,7 +214,6 @@ fun ModernNotaCard(
     
     val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val colorNota = when {
-        nota.esRecordatorio -> Color(0xFFFFF3E0) // Naranja claro para recordatorios
         nota.esCompletada -> Color(0xFFE8F5E8) // Verde claro para completadas
         else -> Color(0xFFFFF8E1) // Amarillo claro para notas normales
     }
@@ -391,20 +384,6 @@ fun ModernNotaCard(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (nota.esRecordatorio) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = "📅 Recordatorio",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFE65100),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                    
                     if (nota.esCompletada) {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
@@ -493,7 +472,6 @@ fun ModernAgregarNotaDialog(
 ) {
     var titulo by remember { mutableStateOf("") }
     var contenido by remember { mutableStateOf("") }
-    var esRecordatorio by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -528,25 +506,6 @@ fun ModernAgregarNotaDialog(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = esRecordatorio,
-                        onCheckedChange = { esRecordatorio = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFFFF9800),
-                            uncheckedColor = Color(0xFFE0E0E0)
-                        )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Es recordatorio",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF1A1A1A)
-                    )
-                }
             }
         },
         confirmButton = {
@@ -556,7 +515,7 @@ fun ModernAgregarNotaDialog(
                         val nota = NotaEntity(
                             titulo = titulo,
                             contenido = contenido,
-                            esRecordatorio = esRecordatorio
+                            esRecordatorio = false
                         )
                         onNotaAgregada(nota)
                     }

@@ -32,10 +32,12 @@ import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun VentasScreen(
+    navController: NavController,
     viewModel: VentasViewModel = hiltViewModel()
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -72,7 +74,7 @@ fun VentasScreen(
                     tint = Color(0xFF1A1A1A),
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { /* Navegar atrás */ }
+                        .clickable { navController.navigateUp() }
                 )
                 
                 Spacer(modifier = Modifier.width(16.dp))

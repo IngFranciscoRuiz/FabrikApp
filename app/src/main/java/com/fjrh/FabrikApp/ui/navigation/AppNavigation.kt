@@ -25,10 +25,6 @@ fun AppNavigation(navController: NavHostController) {
             SplashScreen(navController)
         }
 
-        composable("app_selector") {
-            AppSelectorScreen(navController)
-        }
-
         composable("onboarding") {
             OnboardingScreen(navController)
         }
@@ -136,6 +132,7 @@ fun AppNavigation(navController: NavHostController) {
         // Producción sin fórmula
         composable("produccion") {
             ProduccionScreen(
+                navController = navController,
                 formula = null,
                 viewModel = hiltViewModel()
             )
@@ -156,17 +153,18 @@ fun AppNavigation(navController: NavHostController) {
             }
 
             ProduccionScreen(
+                navController = navController,
                 formula = formula,
                 viewModel = hiltViewModel()
             )
         }
 
         composable("stock_productos") {
-            StockProductosScreen(navController = navController)
+            StockProductosScreen(navController)
         }
 
         composable("ventas") {
-            VentasScreen()
+            VentasScreen(navController)
         }
 
         composable("finanzas_hub") {
@@ -174,15 +172,15 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("balance") {
-            BalanceScreen(navController = navController)
+            BalanceScreen(navController)
         }
 
         composable("notas") {
-            NotasScreen(navController = navController)
+            NotasScreen(navController)
         }
 
         composable("unidades") {
-            UnidadesScreen(navController = navController)
+            UnidadesScreen(navController)
         }
 
         composable("pedidos_proveedor") {
@@ -193,38 +191,17 @@ fun AppNavigation(navController: NavHostController) {
             ConfiguracionScreen(navController)
         }
 
-        // ===== RUTAS DEL MOCKUP MODERNO =====
-        
-        composable("dashboard") {
-            DashboardScreen(navController)
-        }
-
-        composable("inventario_moderno") {
-            InventarioModernScreen(navController)
-        }
-
-        composable("produccion_moderno") {
-            ProduccionModernScreen(navController)
-        }
-
-        composable("ventas_moderno") {
-            VentasModernScreen(navController)
-        }
-
-        composable("mockup_demo") {
-            MockupDemoScreen(navController)
-        }
-
         // Rutas adicionales para accesos rápidos
         composable("nueva_produccion") {
             ProduccionScreen(
+                navController = navController,
                 formula = null,
                 viewModel = hiltViewModel()
             )
         }
 
         composable("nueva_venta") {
-            VentasScreen()
+            VentasScreen(navController)
         }
     }
 }

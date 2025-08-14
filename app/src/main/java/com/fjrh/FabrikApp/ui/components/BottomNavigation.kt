@@ -44,9 +44,9 @@ fun FabrikBottomNavigation(
             BottomNavItem(
                 icon = Icons.Filled.Home,
                 label = "Inicio",
-                route = "dashboard",
+                route = "menu",
                 currentRoute = currentRoute,
-                onClick = { navController.navigate("dashboard") }
+                onClick = { navController.navigate("menu") }
             )
             
             BottomNavItem(

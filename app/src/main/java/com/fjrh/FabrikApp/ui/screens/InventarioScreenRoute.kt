@@ -7,15 +7,16 @@ import androidx.navigation.NavHostController
 import com.fjrh.FabrikApp.ui.viewmodel.InventarioViewModel
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 
 
 @Composable
-fun InventarioScreenRoute(navController: NavHostController) {
-    val viewModel: InventarioViewModel = hiltViewModel()
+fun InventarioScreenRoute(
+    navController: NavController,
+    viewModel: InventarioViewModel = hiltViewModel()
+) {
     InventarioScreen(
         viewModel = viewModel,
-        onAgregarClicked = {
-            navController.navigate("agregar_ingrediente")
-        }
+        onAgregarClicked = { navController.navigate("agregar_ingrediente") }
     )
 }

@@ -31,11 +31,16 @@ import androidx.compose.ui.unit.dp
 import com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes
 import com.fjrh.FabrikApp.ui.viewmodel.FormulaViewModel
 import com.fjrh.FabrikApp.ui.utils.validarLitros
+import com.fjrh.FabrikApp.ui.utils.validarCantidad
+import com.fjrh.FabrikApp.ui.utils.formatearCantidad
+import com.fjrh.FabrikApp.ui.utils.formatearPrecioMoneda
+import androidx.navigation.NavController
 
 fun String.toFloatOrZero(): Float = this.toFloatOrNull() ?: 0f
 
 @Composable
 fun ProduccionScreen(
+    navController: NavController,
     formula: FormulaConIngredientes?,
     viewModel: FormulaViewModel
 ) {
@@ -69,7 +74,7 @@ fun ProduccionScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
                 .padding(top = 60.dp)
-                .padding(bottom = 100.dp),
+                .padding(bottom = 120.dp), // Aumentar padding bottom para el botón
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header moderno
@@ -83,7 +88,7 @@ fun ProduccionScreen(
                     tint = Color(0xFF1A1A1A),
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { /* Navegar atrás */ }
+                        .clickable { navController.navigateUp() }
                 )
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -114,31 +119,102 @@ fun ProduccionScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Selección de fórmula
-            if (selectedFormula == null) {
-                if (listaFormulas.isEmpty()) {
-                    EmptyState(
-                        icon = Icons.Default.Science,
-                        title = "No hay fórmulas",
-                        message = "No hay fórmulas registradas para producción."
-                    )
-                } else {
-                    FormulaSelector(
-                        formulas = listaFormulas,
-                        onFormulaSelected = { selectedFormula = it }
+            // Contenido principal con scroll
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Selección de fórmula
+                if (selectedFormula == null) {
+                    if (listaFormulas.isEmpty()) {
+                        EmptyState(
+                            icon = Icons.Default.Science,
+                            title = "No hay fórmulas",
+                            message = "No hay fórmulas registradas para producción."
+                        )
+                    } else {
+                        FormulaSelector(
+                            formulas = listaFormulas,
+                            onFormulaSelected = { selectedFormula = it }
+                        )
+                    }
+                }
+
+                // Contenido de producción
+                selectedFormula?.let { formula ->
+                    ProductionContent(
+                        formula = formula,
+                        litrosDeseados = litrosDeseados,
+                        onLitrosChange = { litrosDeseados = it },
+                        ingredientesInventario = ingredientesInventario,
+                        checkedItems = checkedItems,
+                        onProduce = {
+                            scope.launch {
+                                // Descontar ingredientes del inventario
+                                formula.ingredientes.forEach { ingrediente ->
+                                    val cantidadCalculada = litrosDeseados.toFloatOrZero() * ingrediente.cantidad.toFloatOrZero()
+                                    val ingredienteInventario = ingredientesInventario.find { 
+                                        it.nombre.equals(ingrediente.nombre, ignoreCase = true) 
+                                    }
+                                    
+                                    ingredienteInventario?.let { ingredienteEnInventario ->
+                                        val cantidadADescontar = convertirUnidades(
+                                            cantidad = cantidadCalculada,
+                                            unidadOrigen = ingrediente.unidad,
+                                            unidadDestino = ingredienteEnInventario.unidad
+                                        )
+                                        
+                                        val nuevoStock = ingredienteEnInventario.cantidadDisponible - cantidadADescontar
+                                        val ingredienteActualizado = ingredienteEnInventario.copy(
+                                            cantidadDisponible = nuevoStock
+                                        )
+                                        viewModel.actualizarIngredienteInventario(ingredienteActualizado)
+                                    }
+                                }
+                                
+                                // Registrar el historial de producción
+                                val historial = HistorialProduccionEntity(
+                                    nombreFormula = formula.formula.nombre,
+                                    litrosProducidos = litrosDeseados.toFloatOrZero(),
+                                    fecha = System.currentTimeMillis()
+                                )
+                                viewModel.insertarHistorial(historial)
+                                
+                                snackbarHostState.showSnackbar("¡Lote producido exitosamente!")
+                            }
+                        }
                     )
                 }
             }
+        }
+        
+        // Botón de producción fijo en la parte inferior
+        selectedFormula?.let { formula ->
+            val todosIngredientesDisponibles = formula.ingredientes.all { ingrediente ->
+                val cantidadCalculada = litrosDeseados.toFloatOrZero() * ingrediente.cantidad.toFloatOrZero()
+                val ingredienteInventario = ingredientesInventario.find { 
+                    it.nombre.equals(ingrediente.nombre, ignoreCase = true) 
+                }
+                ingredienteInventario?.let { inventario ->
+                    val stockDisponibleConvertido = convertirUnidades(
+                        cantidad = inventario.cantidadDisponible,
+                        unidadOrigen = inventario.unidad,
+                        unidadDestino = ingrediente.unidad
+                    )
+                    stockDisponibleConvertido >= cantidadCalculada
+                } ?: false
+            }
 
-            // Contenido de producción
-            selectedFormula?.let { formula ->
-                ProductionContent(
-                    formula = formula,
-                    litrosDeseados = litrosDeseados,
-                    onLitrosChange = { litrosDeseados = it },
-                    ingredientesInventario = ingredientesInventario,
-                    checkedItems = checkedItems,
-                    onProduce = {
+            val allChecked = formula.ingredientes.all { checkedItems[it.id] == true }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 100.dp)
+                    .padding(horizontal = 20.dp)
+            ) {
+                Button(
+                    onClick = {
                         scope.launch {
                             // Descontar ingredientes del inventario
                             formula.ingredientes.forEach { ingrediente ->
@@ -172,8 +248,24 @@ fun ProduccionScreen(
                             
                             snackbarHostState.showSnackbar("¡Lote producido exitosamente!")
                         }
-                    }
-                )
+                    },
+                    enabled = allChecked && todosIngredientesDisponibles && litrosDeseados.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Iniciar Producción",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
         
@@ -335,152 +427,126 @@ fun ProductionContent(
     onProduce: () -> Unit
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp) // Reducir espaciado
     ) {
-        // Información de la fórmula
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        // Información de la fórmula y litros en una sola línea
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
+            // Información de la fórmula (más compacta)
+            Card(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text(
-                    text = formula.formula.nombre,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color(0xFF1A1A1A),
-                    fontWeight = FontWeight.Bold
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Fórmula de producción",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF666666)
-                )
-            }
-        }
-
-        // Campo de litros
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "Litros a producir",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF1A1A1A),
-                    fontWeight = FontWeight.Bold
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                TextField(
-                    value = litrosDeseados,
-                    onValueChange = { 
-                        if (validarLitros(it)) {
-                            onLitrosChange(it)
-                        }
-                    },
-                    placeholder = { Text("Ingresa la cantidad de litros") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Done
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFF8F9FA),
-                        unfocusedContainerColor = Color(0xFFF8F9FA),
-                        focusedIndicatorColor = Color(0xFF1976D2),
-                        unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                Column(
+                    modifier = Modifier.padding(16.dp) // Reducir padding
+                ) {
+                    Text(
+                        text = formula.formula.nombre,
+                        style = MaterialTheme.typography.titleMedium, // Reducir tamaño
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Bold
                     )
-                )
+                    
+                    Spacer(modifier = Modifier.height(4.dp)) // Reducir espaciado
+                    
+                    Text(
+                        text = "${formula.ingredientes.size} ingredientes",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF666666)
+                    )
+                }
+            }
+
+            // Campo de litros (más compacto)
+            Card(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp) // Reducir padding
+                ) {
+                    Text(
+                        text = "Litros a producir",
+                        style = MaterialTheme.typography.bodyMedium, // Reducir tamaño
+                        color = Color(0xFF1A1A1A),
+                        fontWeight = FontWeight.Medium
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp)) // Reducir espaciado
+                    
+                    TextField(
+                        value = litrosDeseados,
+                        onValueChange = { 
+                            if (validarCantidad(it)) {
+                                onLitrosChange(it)
+                            }
+                        },
+                        placeholder = { Text("Cantidad") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Decimal,
+                            imeAction = ImeAction.Done
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF8F9FA),
+                            unfocusedContainerColor = Color(0xFFF8F9FA),
+                            focusedIndicatorColor = Color(0xFF1976D2),
+                            unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                            focusedTextColor = Color(0xFF1A1A1A), // Color oscuro para el texto
+                            unfocusedTextColor = Color(0xFF1A1A1A), // Color oscuro para el texto
+                            focusedPlaceholderColor = Color(0xFF999999), // Color para placeholder
+                            unfocusedPlaceholderColor = Color(0xFF999999) // Color para placeholder
+                        ),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color(0xFF1A1A1A) // Asegurar color oscuro
+                        )
+                    )
+                }
             }
         }
 
         val litros = litrosDeseados.toFloatOrZero()
 
         if (litros > 0f) {
-            // Información de costos
+            // Información de costos (más compacta)
             CostInfoCard(formula = formula, litros = litros)
             
-            // Lista de ingredientes
+            // Lista de ingredientes (con más espacio)
             IngredientsListCard(
                 formula = formula,
                 litros = litros,
                 ingredientesInventario = ingredientesInventario,
                 checkedItems = checkedItems
             )
-            
-            // Botón de producción
-            val todosIngredientesDisponibles = formula.ingredientes.all { ingrediente ->
-                val cantidadCalculada = litros * ingrediente.cantidad.toFloatOrZero()
-                val ingredienteInventario = ingredientesInventario.find { 
-                    it.nombre.equals(ingrediente.nombre, ignoreCase = true) 
-                }
-                ingredienteInventario?.let { inventario ->
-                    val stockDisponibleConvertido = convertirUnidades(
-                        cantidad = inventario.cantidadDisponible,
-                        unidadOrigen = inventario.unidad,
-                        unidadDestino = ingrediente.unidad
-                    )
-                    stockDisponibleConvertido >= cantidadCalculada
-                } ?: false
-            }
-
-            val allChecked = formula.ingredientes.all { checkedItems[it.id] == true }
-
-            Button(
-                onClick = { onProduce() },
-                enabled = allChecked && todosIngredientesDisponibles,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Iniciar Producción",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp), // Reducir radio
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp), // Reducir padding
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
                         tint = Color(0xFF1976D2),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp) // Reducir tamaño
                     )
                     
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp)) // Reducir espaciado
                     
                     Text(
-                        text = "Ingresa los litros deseados para calcular cantidades",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = "Ingresa los litros para calcular cantidades",
+                        style = MaterialTheme.typography.bodySmall, // Reducir tamaño
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
                     )
@@ -508,77 +574,42 @@ fun CostInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp), // Reducir radio
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), // Reducir padding
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Información de Costos",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF1A1A1A),
-                fontWeight = FontWeight.Bold
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            Column {
                 Text(
-                    text = "Costo por litro:",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Costo por litro",
+                    style = MaterialTheme.typography.bodySmall, // Reducir tamaño
                     color = Color(0xFF666666)
                 )
                 Text(
-                    text = "$${String.format("%.2f", costoPorLitro)}",
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "${formatearPrecioMoneda(costoPorLitro)}",
+                    style = MaterialTheme.typography.titleMedium, // Reducir tamaño
                     color = Color(0xFF1A1A1A),
                     fontWeight = FontWeight.Bold
                 )
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Column(
+                horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "Litros a producir:",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Costo total",
+                    style = MaterialTheme.typography.bodySmall, // Reducir tamaño
                     color = Color(0xFF666666)
                 )
                 Text(
-                    text = "$litros",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF1A1A1A),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Divider(color = Color(0xFFE0E0E0))
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Costo total:",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF1A1A1A),
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "$${String.format("%.2f", costoTotalProduccion)}",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color(0xFF1976D2),
+                    text = "${formatearPrecioMoneda(costoTotalProduccion)}",
+                    style = MaterialTheme.typography.titleMedium, // Reducir tamaño
+                    color = Color(0xFF4CAF50),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -596,11 +627,11 @@ fun IngredientsListCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp), // Reducir radio
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp) // Reducir padding
         ) {
             Text(
                 text = "Insumos Necesarios",
@@ -609,7 +640,7 @@ fun IngredientsListCard(
                 fontWeight = FontWeight.Bold
             )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp)) // Reducir espaciado
             
             // Header de la tabla
             Row(
@@ -618,7 +649,7 @@ fun IngredientsListCard(
             ) {
                 Text(
                     text = "Insumo",
-                    modifier = Modifier.weight(2f),
+                    modifier = Modifier.weight(2.5f), // Dar más espacio al nombre
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF666666),
                     fontWeight = FontWeight.Bold
@@ -638,7 +669,7 @@ fun IngredientsListCard(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Stock",
+                    text = "✓",
                     modifier = Modifier.weight(0.5f),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF666666),
@@ -646,14 +677,15 @@ fun IngredientsListCard(
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reducir espaciado
             
-            Divider(color = Color(0xFFE0E0E0))
+            HorizontalDivider(color = Color(0xFFE0E0E0)) // Usar HorizontalDivider en lugar de Divider
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // Reducir espaciado
             
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp), // Aumentar espaciado entre items
+                modifier = Modifier.heightIn(max = 400.dp) // Limitar altura máxima para dar más espacio
             ) {
                 items(formula.ingredientes) { ingrediente ->
                     val cantidadCalculada = litros * ingrediente.cantidad.toFloatOrZero()
@@ -683,61 +715,73 @@ fun IngredientsListCard(
                         Color(0xFFE57373)
                     }
 
-                    Row(
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(
-                            text = ingrediente.nombre, 
-                            modifier = Modifier.weight(2f),
-                            color = colorTexto,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = ingrediente.unidad, 
-                            modifier = Modifier.weight(0.8f),
-                            color = colorTexto,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            text = "%.2f".format(cantidadCalculada), 
-                            modifier = Modifier.weight(1f),
-                            color = colorTexto,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (!hayStockSuficiente) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Stock insuficiente",
-                                tint = Color(0xFFE57373),
-                                modifier = Modifier
-                                    .weight(0.5f)
-                                    .size(16.dp)
-                            )
-                        } else {
-                            Checkbox(
-                                checked = isChecked,
-                                onCheckedChange = { checkedItems[ingrediente.id] = it },
-                                modifier = Modifier.weight(0.5f),
-                                colors = CheckboxDefaults.colors(
-                                    checkedColor = Color(0xFF1976D2),
-                                    uncheckedColor = Color(0xFFCCCCCC)
+                        Column(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = ingrediente.nombre, 
+                                    modifier = Modifier.weight(2.5f), // Dar más espacio al nombre
+                                    color = colorTexto,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 2, // Permitir 2 líneas
+                                    overflow = TextOverflow.Ellipsis
                                 )
-                            )
+                                Text(
+                                    text = ingrediente.unidad, 
+                                    modifier = Modifier.weight(0.8f),
+                                    color = colorTexto,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Text(
+                                    text = formatearCantidad(cantidadCalculada.toDouble()), 
+                                    modifier = Modifier.weight(1f),
+                                    color = colorTexto,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                if (!hayStockSuficiente) {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = "Stock insuficiente",
+                                        tint = Color(0xFFE57373),
+                                        modifier = Modifier
+                                            .weight(0.5f)
+                                            .size(20.dp) // Aumentar tamaño
+                                    )
+                                } else {
+                                    Checkbox(
+                                        checked = isChecked,
+                                        onCheckedChange = { checkedItems[ingrediente.id] = it },
+                                        modifier = Modifier.weight(0.5f),
+                                        colors = CheckboxDefaults.colors(
+                                            checkedColor = Color(0xFF4CAF50), // Verde para checked
+                                            uncheckedColor = Color(0xFFCCCCCC)
+                                        )
+                                    )
+                                }
+                            }
+                            
+                            // Mostrar información de stock si no hay suficiente
+                            if (!hayStockSuficiente && ingredienteInventario != null) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Stock disponible: ${ingredienteInventario.cantidadDisponible} ${ingredienteInventario.unidad}",
+                                    color = Color(0xFFE57373),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
-                    }
-                    
-                    // Mostrar información de stock si no hay suficiente
-                    if (!hayStockSuficiente && ingredienteInventario != null) {
-                        Text(
-                            text = "Stock disponible: ${ingredienteInventario.cantidadDisponible} ${ingredienteInventario.unidad}",
-                            color = Color(0xFFE57373),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                        )
                     }
                 }
             }

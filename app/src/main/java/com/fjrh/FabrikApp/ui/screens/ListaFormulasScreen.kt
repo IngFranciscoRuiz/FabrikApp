@@ -434,9 +434,10 @@ fun ModernFormulaCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Producción",
+                            text = "Producir",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                     
@@ -458,7 +459,8 @@ fun ModernFormulaCard(
                         Text(
                             text = "Editar",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                     
@@ -477,7 +479,8 @@ fun ModernFormulaCard(
                         Text(
                             text = "Eliminar",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                 }
