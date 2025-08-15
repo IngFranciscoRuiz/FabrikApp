@@ -76,3 +76,26 @@ fun FabrikAppTheme(
         content = content
     )
 }
+
+@Composable
+fun FabrikAppThemeWithConfig(
+    isDarkTheme: Boolean,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (isDarkTheme) DarkColorScheme else LightColorScheme
+    
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDarkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = MaterialTypography(),
+        content = content
+    )
+}

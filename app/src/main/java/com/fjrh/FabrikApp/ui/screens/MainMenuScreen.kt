@@ -65,7 +65,7 @@ fun MainMenuScreen(
                     )
                 }
             }
-            item { MainKPIsSection() }
+            item { MainKPIsSection(viewModel) }
             item { MainQuickAccessSection(navController) }
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
@@ -90,7 +90,7 @@ fun WelcomeHeader(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Hola, Francisco",
+            text = "FabrikApp",
             style = MaterialTheme.typography.headlineMedium,
             color = Color(0xFF1A1A1A),
             fontWeight = FontWeight.Bold
@@ -212,7 +212,11 @@ fun MainFeaturesSection(navController: NavController) {
 }
 
 @Composable
-fun MainKPIsSection() {
+fun MainKPIsSection(viewModel: MainMenuViewModel) {
+    val ventasHoy by viewModel.ventasHoy.collectAsState()
+    val stockBajo by viewModel.stockBajo.collectAsState()
+    val produccionHoy by viewModel.produccionHoy.collectAsState()
+    
     Column {
         Text(
             text = "KPIs",
@@ -229,15 +233,15 @@ fun MainKPIsSection() {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MainKPICard("Stock OK", "8", Color(0xFF4CAF50), Modifier.weight(1f))
-                MainKPICard("Stock bajo", "3", Color(0xFFFF9800), Modifier.weight(1f))
+                MainKPICard("Ventas hoy", viewModel.formatearVentasHoy(), Color(0xFF4CAF50), Modifier.weight(1f))
+                MainKPICard("Stock bajo", viewModel.formatearStockBajo(), Color(0xFFFF9800), Modifier.weight(1f))
             }
             
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MainKPICard("Producción hoy", "2", Color(0xFF2196F3), Modifier.weight(1f))
-                MainKPICard("Pedidos pendientes", "1", Color(0xFFFF5722), Modifier.weight(1f))
+                MainKPICard("Producción hoy", viewModel.formatearProduccionHoy(), Color(0xFF2196F3), Modifier.weight(1f))
+                MainKPICard("Pedidos pendientes", "0", Color(0xFFFF5722), Modifier.weight(1f))
             }
         }
     }

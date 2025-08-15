@@ -262,9 +262,46 @@ fun ConfiguracionScreen(
                         color = Color(0xFFF44336)
                     )
                 }
+                
+                // Botón Guardar Cambios
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        val config = ConfiguracionStock(
+                            stockAltoProductos = stockAltoProductos.toFloatOrNull() ?: 100f,
+                            stockMedioProductos = stockMedioProductos.toFloatOrNull() ?: 50f,
+                            stockBajoProductos = stockBajoProductos.toFloatOrNull() ?: 25f,
+                            stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
+                            stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
+                            stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
+                            backupAutomatico = backupAutomatico,
+                            frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
+                            temaOscuro = temaOscuro
+                        )
+                        viewModel.guardarConfiguracion(config)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Guardar Cambios",
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
-            // Backup
+            // Backup - OCULTO TEMPORALMENTE
+            /*
             ModernConfigSection(
                 title = "Backup",
                 icon = Icons.Default.Backup,
@@ -288,6 +325,7 @@ fun ConfiguracionScreen(
                     )
                 }
             }
+            */
 
             // Tema
             ModernConfigSection(

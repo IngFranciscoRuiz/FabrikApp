@@ -65,7 +65,7 @@ fun DashboardHeader() {
             modifier = Modifier.padding(20.dp)
         ) {
             Text(
-                text = "Hola, Francisco",
+                text = "FabrikApp",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = FabrikAppBlack
