@@ -53,7 +53,7 @@ fun VentasScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -71,7 +71,7 @@ fun VentasScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF1A1A1A),
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(24.dp)
                         .clickable { navController.navigateUp() }
@@ -82,7 +82,7 @@ fun VentasScreen(
                 Text(
                     text = "Ventas",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF1A1A1A),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -94,13 +94,13 @@ fun VentasScreen(
                 ) {
                     // Total de ventas
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         Text(
                             text = "${ventas.size}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
@@ -108,14 +108,14 @@ fun VentasScreen(
                     
                     // Total de ingresos
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
                         shape = RoundedCornerShape(20.dp)
                     ) {
                         val totalIngresos = ventas.sumOf { it.litrosVendidos * it.precioPorLitro }
                         Text(
                             text = "$${String.format("%.0f", totalIngresos)}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
@@ -128,7 +128,7 @@ fun VentasScreen(
             // Campo de búsqueda moderno
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -141,7 +141,7 @@ fun VentasScreen(
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
-                        tint = Color(0xFF666666),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.size(20.dp)
                     )
                     
@@ -156,7 +156,9 @@ fun VentasScreen(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color(0xFF1A1A1A),
+                            unfocusedTextColor = Color(0xFF1A1A1A)
                         ),
                         singleLine = true
                     )
@@ -513,7 +515,9 @@ fun ModernAgregarVentaDialog(
                                     focusedContainerColor = Color.White,
                                     unfocusedContainerColor = Color.White,
                                     focusedIndicatorColor = Color(0xFF1976D2),
-                                    unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                    unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                    focusedTextColor = Color(0xFF1A1A1A),
+                                    unfocusedTextColor = Color(0xFF1A1A1A)
                                 )
                             )
                             
@@ -529,7 +533,8 @@ fun ModernAgregarVentaDialog(
                                         text = { 
                                             Text(
                                                 text = "${producto.nombre} (${producto.stock} L disponible)",
-                                                style = MaterialTheme.typography.bodyMedium
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color(0xFF1A1A1A)
                                             )
                                         },
                                         onClick = {
@@ -574,7 +579,9 @@ fun ModernAgregarVentaDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -611,7 +618,9 @@ fun ModernAgregarVentaDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -643,7 +652,9 @@ fun ModernAgregarVentaDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }

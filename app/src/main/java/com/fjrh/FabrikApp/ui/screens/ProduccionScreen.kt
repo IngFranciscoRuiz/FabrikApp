@@ -67,7 +67,7 @@ fun ProduccionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -85,7 +85,7 @@ fun ProduccionScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF1A1A1A),
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(24.dp)
                         .clickable { navController.navigateUp() }
@@ -96,7 +96,7 @@ fun ProduccionScreen(
                 Text(
                     text = "Producción",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF1A1A1A),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -104,7 +104,7 @@ fun ProduccionScreen(
                 
                 // Contador de fórmulas
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(

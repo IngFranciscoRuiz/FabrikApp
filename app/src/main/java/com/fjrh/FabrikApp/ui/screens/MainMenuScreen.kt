@@ -30,7 +30,7 @@ fun MainMenuScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -92,7 +92,7 @@ fun WelcomeHeader(
         Text(
             text = "FabrikApp",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         
@@ -165,7 +165,7 @@ fun MainFeaturesSection(navController: NavController) {
         Text(
             text = "Funciones principales",
             style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -221,7 +221,7 @@ fun MainKPIsSection(viewModel: MainMenuViewModel) {
         Text(
             text = "KPIs",
             style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -241,7 +241,7 @@ fun MainKPIsSection(viewModel: MainMenuViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MainKPICard("Producción hoy", viewModel.formatearProduccionHoy(), Color(0xFF2196F3), Modifier.weight(1f))
-                MainKPICard("Pedidos pendientes", "0", Color(0xFFFF5722), Modifier.weight(1f))
+                MainKPICard("Pedidos pendientes", viewModel.formatearPedidosPendientes(), Color(0xFFFF5722), Modifier.weight(1f))
             }
         }
     }
@@ -253,7 +253,7 @@ fun MainQuickAccessSection(navController: NavController) {
         Text(
             text = "Accesos rápidos",
             style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF1A1A1A),
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
         )
@@ -307,7 +307,7 @@ fun MainFeatureCard(
         modifier = modifier
             .height(60.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -329,7 +329,7 @@ fun MainFeatureCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF1A1A1A),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

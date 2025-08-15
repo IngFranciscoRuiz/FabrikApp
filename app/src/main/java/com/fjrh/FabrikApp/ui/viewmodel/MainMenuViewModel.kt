@@ -26,6 +26,9 @@ class MainMenuViewModel @Inject constructor(
     private val _produccionHoy = MutableStateFlow(0.0)
     val produccionHoy: StateFlow<Double> = _produccionHoy.asStateFlow()
 
+    private val _pedidosPendientes = MutableStateFlow(0)
+    val pedidosPendientes: StateFlow<Int> = _pedidosPendientes.asStateFlow()
+
     init {
         cargarMetricas()
     }
@@ -79,6 +82,14 @@ class MainMenuViewModel @Inject constructor(
                 _produccionHoy.value = produccionHoy
             }
         }
+
+        viewModelScope.launch {
+            // Cargar pedidos pendientes
+            repository.getPedidosProveedor().collect { pedidos ->
+                val pedidosPendientes = pedidos.count { it.estado == "PENDIENTE" }
+                _pedidosPendientes.value = pedidosPendientes
+            }
+        }
     }
 
     fun formatearVentasHoy(): String {
@@ -91,5 +102,9 @@ class MainMenuViewModel @Inject constructor(
 
     fun formatearProduccionHoy(): String {
         return "${String.format("%.0f", _produccionHoy.value)} L"
+    }
+
+    fun formatearPedidosPendientes(): String {
+        return "${_pedidosPendientes.value}"
     }
 } 

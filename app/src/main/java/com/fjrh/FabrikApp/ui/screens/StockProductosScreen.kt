@@ -36,7 +36,7 @@ fun StockProductosScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -75,13 +75,13 @@ fun StockProductosScreen(
                     Text(
                         text = "Stock de Productos",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color(0xFF1A1A1A),
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -101,19 +101,19 @@ fun StockProductosScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StockStatCard(
-                    title = "Stock OK",
+                    title = "Stock Alto",
                     value = stockList.count { stockAlertService.getStockColorProducto(it.stock, configuracion) == Color(0xFF4CAF50) }.toString(),
                     color = Color(0xFF4CAF50),
                     modifier = Modifier.weight(1f)
                 )
                 StockStatCard(
-                    title = "Stock Bajo",
+                    title = "Stock Medio",
                     value = stockList.count { stockAlertService.getStockColorProducto(it.stock, configuracion) == Color(0xFFFF9800) }.toString(),
                     color = Color(0xFFFF9800),
                     modifier = Modifier.weight(1f)
                 )
                 StockStatCard(
-                    title = "Sin Stock",
+                    title = "Stock Bajo",
                     value = stockList.count { stockAlertService.getStockColorProducto(it.stock, configuracion) == Color(0xFFF44336) }.toString(),
                     color = Color(0xFFF44336),
                     modifier = Modifier.weight(1f)

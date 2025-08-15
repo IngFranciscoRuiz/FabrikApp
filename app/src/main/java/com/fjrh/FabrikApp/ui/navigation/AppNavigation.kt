@@ -185,7 +185,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("pedidos_proveedor") {
-            PedidosProveedorScreen()
+            PedidosProveedorScreen(navController)
         }
 
         composable("configuracion") {

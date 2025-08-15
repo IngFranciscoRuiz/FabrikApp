@@ -44,7 +44,7 @@ fun ListaFormulasScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -62,7 +62,7 @@ fun ListaFormulasScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF1A1A1A),
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(24.dp)
                         .clickable { navController.popBackStack() }
@@ -73,7 +73,7 @@ fun ListaFormulasScreen(
                 Text(
                     text = "Fórmulas",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF1A1A1A),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 

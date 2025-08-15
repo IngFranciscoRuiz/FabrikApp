@@ -31,10 +31,12 @@ import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun PedidosProveedorScreen(
+    navController: NavController,
     viewModel: PedidosProveedorViewModel = hiltViewModel()
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
@@ -49,7 +51,7 @@ fun PedidosProveedorScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -67,45 +69,45 @@ fun PedidosProveedorScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF1A1A1A),
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { /* Navegar atrás */ }
+                        .clickable { navController.navigateUp() }
                 )
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 Text(
-                    text = "Pedidos a Proveedor",
+                    text = "Proveedores",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF1A1A1A),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Spacer(modifier = Modifier.weight(1f))
                 
-                // Estadísticas rápidas
+                // Estadísticas rápidas compactas
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     // Total de pedidos
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text(
                             text = "${pedidos.size}",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                         )
                     }
                     
                     // Total de gastos
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         val totalGastos = pedidos.sumOf { it.monto }
                         Text(
@@ -113,7 +115,7 @@ fun PedidosProveedorScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                         )
                     }
                 }
@@ -152,7 +154,9 @@ fun PedidosProveedorScreen(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color(0xFF1A1A1A),
+                            unfocusedTextColor = Color(0xFF1A1A1A)
                         ),
                         singleLine = true
                     )
@@ -317,7 +321,7 @@ fun ModernPedidoCard(
         dismissContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -344,14 +348,14 @@ fun ModernPedidoCard(
                             Text(
                                 text = pedido.nombreProveedor,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFF1A1A1A),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold
                             )
                             
                             Text(
                                 text = dateFormat.format(Date(pedido.fecha)),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF666666)
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                         
@@ -365,18 +369,19 @@ fun ModernPedidoCard(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // Detalles del pedido
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
-                        shape = RoundedCornerShape(12.dp)
+                    // Detalles del pedido distribuidos
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Columna izquierda - Productos
                         Column(
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = "Productos:",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF666666),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 fontWeight = FontWeight.Medium
                             )
                             
@@ -385,17 +390,22 @@ fun ModernPedidoCard(
                             Text(
                                 text = pedido.productos,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF1A1A1A)
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
-                            
-                            pedido.descripcion?.let { descripcion ->
-                                if (descripcion.isNotBlank()) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    
+                        }
+                        
+                        // Columna derecha - Descripción (si existe)
+                        pedido.descripcion?.let { descripcion ->
+                            if (descripcion.isNotBlank()) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
                                     Text(
                                         text = "Descripción:",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color(0xFF666666),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                         fontWeight = FontWeight.Medium
                                     )
                                     
@@ -404,7 +414,9 @@ fun ModernPedidoCard(
                                     Text(
                                         text = descripcion,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color(0xFF1A1A1A)
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -501,7 +513,7 @@ fun ModernAgregarPedidoDialog(
         },
         text = {
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Campo de proveedor
                 Card(
@@ -509,7 +521,7 @@ fun ModernAgregarPedidoDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
                             text = "Nombre del proveedor",
@@ -529,7 +541,9 @@ fun ModernAgregarPedidoDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -541,7 +555,7 @@ fun ModernAgregarPedidoDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
                             text = "Productos pedidos",
@@ -562,7 +576,9 @@ fun ModernAgregarPedidoDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -574,7 +590,7 @@ fun ModernAgregarPedidoDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
                             text = "Monto",
@@ -599,7 +615,9 @@ fun ModernAgregarPedidoDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -611,7 +629,7 @@ fun ModernAgregarPedidoDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
                             text = "Descripción (opcional)",
@@ -631,7 +649,9 @@ fun ModernAgregarPedidoDialog(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
                                 focusedIndicatorColor = Color(0xFF1976D2),
-                                unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                focusedTextColor = Color(0xFF1A1A1A),
+                                unfocusedTextColor = Color(0xFF1A1A1A)
                             )
                         )
                     }
@@ -643,7 +663,7 @@ fun ModernAgregarPedidoDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
                             text = "Estado",
@@ -674,7 +694,9 @@ fun ModernAgregarPedidoDialog(
                                     focusedContainerColor = Color.White,
                                     unfocusedContainerColor = Color.White,
                                     focusedIndicatorColor = Color(0xFF1976D2),
-                                    unfocusedIndicatorColor = Color(0xFFCCCCCC)
+                                    unfocusedIndicatorColor = Color(0xFFCCCCCC),
+                                    focusedTextColor = Color(0xFF1A1A1A),
+                                    unfocusedTextColor = Color(0xFF1A1A1A)
                                 )
                             )
                             
@@ -690,7 +712,8 @@ fun ModernAgregarPedidoDialog(
                                         text = { 
                                             Text(
                                                 text = estadoOption,
-                                                style = MaterialTheme.typography.bodyMedium
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = Color(0xFF1A1A1A)
                                             )
                                         },
                                         onClick = {

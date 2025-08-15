@@ -35,7 +35,7 @@ fun NotasScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -126,7 +126,8 @@ fun NotasScreen(
                         ModernNotaCard(
                             nota = nota,
                             onDelete = { viewModel.eliminarNota(nota) },
-                            onEdit = { notaEditada -> viewModel.actualizarNota(notaEditada) }
+                            onEdit = { notaEditada -> viewModel.actualizarNota(notaEditada) },
+                            onToggleComplete = { notaCompletada -> viewModel.actualizarNota(notaCompletada) }
                         )
                     }
                 }
@@ -207,7 +208,8 @@ fun NotasStatCard(
 fun ModernNotaCard(
     nota: NotaEntity,
     onDelete: () -> Unit,
-    onEdit: (NotaEntity) -> Unit
+    onEdit: (NotaEntity) -> Unit,
+    onToggleComplete: (NotaEntity) -> Unit
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var editedNota by remember { mutableStateOf(nota) }
@@ -251,8 +253,9 @@ fun ModernNotaCard(
                     Text(
                         text = if (isEditing) "Editando..." else nota.titulo,
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1A1A1A),
-                        fontWeight = FontWeight.Bold
+                        color = if (nota.esCompletada) Color(0xFF666666) else Color(0xFF1A1A1A),
+                        fontWeight = if (nota.esCompletada) FontWeight.Normal else FontWeight.Bold,
+                        textDecoration = if (nota.esCompletada) androidx.compose.ui.text.style.TextDecoration.LineThrough else androidx.compose.ui.text.style.TextDecoration.None
                     )
                 }
                 
@@ -298,6 +301,24 @@ fun ModernNotaCard(
                             )
                         }
                     } else {
+                        // Botón de Completar/Descompletar
+                        IconButton(
+                            onClick = { onToggleComplete(nota.copy(esCompletada = !nota.esCompletada)) },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(
+                                    color = if (nota.esCompletada) Color(0xFFFFEBEE) else Color(0xFFE8F5E8),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Icon(
+                                imageVector = if (nota.esCompletada) Icons.Default.Undo else Icons.Default.Check,
+                                contentDescription = if (nota.esCompletada) "Descompletar" else "Completar",
+                                tint = if (nota.esCompletada) Color(0xFFF44336) else Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
                         IconButton(
                             onClick = { isEditing = true },
                             modifier = Modifier
@@ -367,7 +388,8 @@ fun ModernNotaCard(
                 Text(
                     text = nota.contenido,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF666666)
+                    color = if (nota.esCompletada) Color(0xFF999999) else Color(0xFF666666),
+                    textDecoration = if (nota.esCompletada) androidx.compose.ui.text.style.TextDecoration.LineThrough else androidx.compose.ui.text.style.TextDecoration.None
                 )
             }
 

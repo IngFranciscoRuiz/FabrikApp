@@ -1,16 +1,19 @@
 package com.fjrh.FabrikApp.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,7 +63,7 @@ fun TarjetaIngrediente(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        elevation = 4.dp,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
@@ -76,9 +79,9 @@ fun TarjetaIngrediente(
             ) {
                 Text(
                     text = "ING.",
-                    style = MaterialTheme.typography.caption,
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colors.primary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 
                 // Indicador de stock
@@ -93,7 +96,7 @@ fun TarjetaIngrediente(
                     )
                     Text(
                         text = textoStock,
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.labelSmall,
                         color = colorSemaforo,
                         fontWeight = FontWeight.Bold
                     )
@@ -158,7 +161,7 @@ fun TarjetaIngrediente(
                 ) {
                     Text(
                         text = "Nombre:",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(0.3f)
                     )
@@ -167,12 +170,12 @@ fun TarjetaIngrediente(
                             value = editedIngrediente.nombre,
                             onValueChange = { editedIngrediente = editedIngrediente.copy(nombre = it) },
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2
+                            textStyle = MaterialTheme.typography.bodyMedium
                         )
                     } else {
                         Text(
                             text = ingrediente.nombre,
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(0.7f)
                         )
                     }
@@ -186,21 +189,60 @@ fun TarjetaIngrediente(
                 ) {
                     Text(
                         text = "Unidad:",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(0.3f)
                     )
                     if (isEditing) {
-                        OutlinedTextField(
-                            value = editedIngrediente.unidad,
-                            onValueChange = { editedIngrediente = editedIngrediente.copy(unidad = it) },
-                            modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2
-                        )
+                        var expanded by remember { mutableStateOf(false) }
+                        val unidades = listOf("Kg", "gr", "L", "ml", "Pzas")
+                        
+                        Box(modifier = Modifier.weight(0.7f)) {
+                            OutlinedTextField(
+                                value = editedIngrediente.unidad,
+                                onValueChange = { },
+                                readOnly = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = MaterialTheme.typography.bodyMedium,
+                                trailingIcon = {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(
+                                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                            contentDescription = "Desplegar unidades"
+                                        )
+                                    }
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+                            
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                            ) {
+                                unidades.forEach { unidad ->
+                                    DropdownMenuItem(
+                                        text = { 
+                                            Text(
+                                                text = unidad,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            ) 
+                                        },
+                                        onClick = {
+                                            editedIngrediente = editedIngrediente.copy(unidad = unidad)
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     } else {
                         Text(
                             text = ingrediente.unidad,
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(0.7f)
                         )
                     }
@@ -214,7 +256,7 @@ fun TarjetaIngrediente(
                 ) {
                     Text(
                         text = "Cantidad:",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(0.3f)
                     )
@@ -233,13 +275,13 @@ fun TarjetaIngrediente(
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2,
+                            textStyle = MaterialTheme.typography.bodyMedium,
                             singleLine = true
                         )
                     } else {
                         Text(
                             text = ingrediente.cantidadDisponible.toString(),
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(0.7f)
                         )
                     }
@@ -253,7 +295,7 @@ fun TarjetaIngrediente(
                 ) {
                     Text(
                         text = "Costo:",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(0.3f)
                     )
@@ -272,13 +314,13 @@ fun TarjetaIngrediente(
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2,
+                            textStyle = MaterialTheme.typography.bodyMedium,
                             singleLine = true
                         )
                     } else {
                         Text(
                             text = "$${String.format("%.2f", ingrediente.costoPorUnidad)}",
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(0.7f)
                         )
                     }
@@ -292,7 +334,7 @@ fun TarjetaIngrediente(
                 ) {
                     Text(
                         text = "Proveedor:",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(0.3f)
                     )
@@ -301,12 +343,12 @@ fun TarjetaIngrediente(
                             value = editedIngrediente.proveedor ?: "",
                             onValueChange = { editedIngrediente = editedIngrediente.copy(proveedor = it) },
                             modifier = Modifier.weight(0.7f),
-                            textStyle = MaterialTheme.typography.body2
+                            textStyle = MaterialTheme.typography.bodyMedium
                         )
                     } else {
                         Text(
                             text = ingrediente.proveedor ?: "No especificado",
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(0.7f)
                         )
                     }

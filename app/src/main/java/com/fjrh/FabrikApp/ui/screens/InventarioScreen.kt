@@ -42,7 +42,7 @@ fun InventarioScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -59,7 +59,7 @@ fun InventarioScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color(0xFF1A1A1A),
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier
                         .size(24.dp)
                         .clickable { navController.navigateUp() }
@@ -70,7 +70,7 @@ fun InventarioScreen(
                 Text(
                     text = "Inventario",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color(0xFF1A1A1A),
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
                 
@@ -143,13 +143,22 @@ fun InventarioScreen(
                 ) {
                     StatCard(
                         title = "Stock Bajo",
-                        value = ingredientes.count { it.cantidadDisponible < 10 }.toString(),
+                        value = ingredientes.count { it.cantidadDisponible < configuracion.stockBajoInsumos }.toString(),
                         color = Color(0xFFFF5722),
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        title = "Stock OK",
-                        value = ingredientes.count { it.cantidadDisponible >= 10 }.toString(),
+                        title = "Stock Medio",
+                        value = ingredientes.count { 
+                            it.cantidadDisponible >= configuracion.stockBajoInsumos && 
+                            it.cantidadDisponible < configuracion.stockMedioInsumos 
+                        }.toString(),
+                        color = Color(0xFFFF9800),
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatCard(
+                        title = "Stock Alto",
+                        value = ingredientes.count { it.cantidadDisponible >= configuracion.stockMedioInsumos }.toString(),
                         color = Color(0xFF4CAF50),
                         modifier = Modifier.weight(1f)
                     )
