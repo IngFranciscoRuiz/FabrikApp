@@ -171,6 +171,66 @@ interface FormulaDao {
     @Query("DELETE FROM pedidos_proveedor")
     suspend fun limpiarPedidosProveedor()
 
+    // MÉTODOS PARA BACKUP - OBTENER TODOS LOS DATOS
+    @Query("SELECT * FROM formulas")
+    suspend fun getAllFormulas(): List<FormulaEntity>
+
+    @Query("SELECT * FROM ingredientes")
+    suspend fun getAllIngredientes(): List<IngredienteEntity>
+
+    @Query("SELECT * FROM unidades_medida")
+    suspend fun getAllUnidadesMedida(): List<UnidadMedidaEntity>
+
+    @Query("SELECT * FROM ventas")
+    suspend fun getAllVentas(): List<VentaEntity>
+
+    @Query("SELECT * FROM balance")
+    suspend fun getAllBalance(): List<BalanceEntity>
+
+    @Query("SELECT * FROM notas")
+    suspend fun getAllNotas(): List<NotaEntity>
+
+    @Query("SELECT * FROM pedidos_proveedor")
+    suspend fun getAllPedidosProveedor(): List<PedidoProveedorEntity>
+
+    @Query("SELECT * FROM historial_produccion")
+    suspend fun getAllHistorialProduccion(): List<HistorialProduccionEntity>
+
+    @Query("SELECT * FROM ingredientes_inventario")
+    suspend fun getAllIngredientesInventario(): List<IngredienteInventarioEntity>
+
+    // MÉTODOS PARA BACKUP - INSERTAR DATOS
+    @Insert
+    suspend fun insertUnidad(unidad: UnidadMedidaEntity)
+
+    @Insert
+    suspend fun insertIngrediente(ingrediente: IngredienteEntity)
+
+    @Insert
+    suspend fun insertIngredienteInventario(ingredienteInventario: IngredienteInventarioEntity)
+
+    @Insert
+    suspend fun insertVenta(venta: VentaEntity)
+
+    @Insert
+    suspend fun insertBalance(balance: BalanceEntity)
+
+    @Insert
+    suspend fun insertNota(nota: NotaEntity)
+
+    @Insert
+    suspend fun insertPedidoProveedor(pedido: PedidoProveedorEntity)
+
+    @Insert
+    suspend fun insertHistorialProduccion(historial: HistorialProduccionEntity)
+
+    // MÉTODOS PARA LIMPIAR DATOS ANTES DE IMPORTAR
+    @Query("DELETE FROM historial_produccion")
+    suspend fun limpiarHistorialProduccion()
+
+    @Query("DELETE FROM unidades_medida")
+    suspend fun limpiarUnidadesMedida()
+
 }
 
 // DTO para la consulta de stock

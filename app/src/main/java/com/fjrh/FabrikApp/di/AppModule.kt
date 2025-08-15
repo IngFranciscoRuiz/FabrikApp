@@ -46,7 +46,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFormulaRepository(db: AppDatabase): FormulaRepository {
-        return FormulaRepository(db.formulaDao())
+        return FormulaRepository(db.formulaDao(), db)
     }
 
     @Provides

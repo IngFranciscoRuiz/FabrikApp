@@ -36,6 +36,9 @@ import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,6 +49,22 @@ fun ConfiguracionScreen(
     navController: NavController,
     viewModel: ConfiguracionViewModel = hiltViewModel()
 ) {
+    // Launchers para selección de archivos
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { 
+            viewModel.exportarDatosExternos(it)
+        }
+    }
+    
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { 
+            viewModel.importarDatosDesdeUri(it)
+        }
+    }
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
     var stockBajoProductos by remember { mutableStateOf("") }
@@ -294,7 +313,7 @@ fun ConfiguracionScreen(
                 ModernConfigButton(
                     title = "Exportar Datos",
                     subtitle = "Descarga una copia de todos los datos",
-                    onClick = { showExportDialog = true },
+                    onClick = { exportLauncher.launch("fabrikapp_backup_${System.currentTimeMillis()}.json") },
                     icon = Icons.Default.Download,
                     color = Color(0xFF4CAF50)
                 )
@@ -302,7 +321,7 @@ fun ConfiguracionScreen(
                 ModernConfigButton(
                     title = "Importar Datos",
                     subtitle = "Restaura datos desde un archivo",
-                    onClick = { showImportDialog = true },
+                    onClick = { importLauncher.launch(arrayOf("application/json")) },
                     icon = Icons.Default.Upload,
                     color = Color(0xFF2196F3)
                 )

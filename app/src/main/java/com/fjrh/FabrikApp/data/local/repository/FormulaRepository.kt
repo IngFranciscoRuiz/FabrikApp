@@ -1,5 +1,6 @@
 package com.fjrh.FabrikApp.data.local.repository
 
+import com.fjrh.FabrikApp.data.local.AppDatabase
 import com.fjrh.FabrikApp.data.local.dao.FormulaDao
 import com.fjrh.FabrikApp.data.local.entity.FormulaConIngredientes
 import com.fjrh.FabrikApp.data.local.entity.FormulaEntity
@@ -17,7 +18,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class FormulaRepository @Inject constructor(
-    private val formulaDao: FormulaDao
+    private val formulaDao: FormulaDao,
+    val database: AppDatabase
 ) {
 
     fun obtenerFormulasConIngredientes(): Flow<List<FormulaConIngredientes>> {
