@@ -16,6 +16,7 @@ fun InventarioScreenRoute(
     viewModel: InventarioViewModel = hiltViewModel()
 ) {
     InventarioScreen(
+        navController = navController,
         viewModel = viewModel,
         onAgregarClicked = { navController.navigate("agregar_ingrediente") }
     )

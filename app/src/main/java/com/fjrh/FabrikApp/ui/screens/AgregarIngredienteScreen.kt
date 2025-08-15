@@ -24,10 +24,12 @@ import com.fjrh.FabrikApp.data.local.entity.UnidadMedidaEntity
 import com.fjrh.FabrikApp.ui.viewmodel.InventarioViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.UnidadesViewModel
 import com.fjrh.FabrikApp.ui.components.*
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgregarIngredienteScreen(
+    navController: NavController,
     viewModel: InventarioViewModel = hiltViewModel(),
     unidadesViewModel: UnidadesViewModel = hiltViewModel(),
     onGuardarExitoso: () -> Unit = {}
@@ -93,7 +95,7 @@ fun AgregarIngredienteScreen(
                     tint = Color(0xFF1A1A1A),
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { /* TODO: Implementar navegación */ }
+                        .clickable { navController.navigateUp() }
                 )
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -324,7 +326,7 @@ fun ModernFormField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            label = { Text(label, color = Color(0xFF1A1A1A)) },
             leadingIcon = {
                 Icon(
                     imageVector = icon,
@@ -346,7 +348,11 @@ fun ModernFormField(
             enabled = enabled,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = color,
-                unfocusedBorderColor = Color(0xFFE0E0E0)
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedTextColor = Color(0xFF1A1A1A),
+                unfocusedTextColor = Color(0xFF1A1A1A),
+                focusedLabelColor = color,
+                unfocusedLabelColor = Color(0xFF666666)
             ),
             shape = RoundedCornerShape(12.dp)
         )
@@ -373,7 +379,7 @@ fun ModernDropdownField(
                 value = value,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(label) },
+                label = { Text(label, color = Color(0xFF1A1A1A)) },
                 leadingIcon = {
                     Icon(
                         imageVector = icon,
@@ -394,17 +400,21 @@ fun ModernDropdownField(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                enabled = enabled,
                 isError = isError,
                 supportingText = {
                     if (isError) {
                         Text(errorMessage, color = Color(0xFFD32F2F))
                     }
                 },
-                singleLine = true,
-                enabled = enabled,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = color,
-                    unfocusedBorderColor = Color(0xFFE0E0E0)
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedTextColor = Color(0xFF1A1A1A),
+                    unfocusedTextColor = Color(0xFF1A1A1A),
+                    focusedLabelColor = color,
+                    unfocusedLabelColor = Color(0xFF666666)
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -418,8 +428,10 @@ fun ModernDropdownField(
                     DropdownMenuItem(
                         text = { Text(option) },
                         onClick = {
-                            onValueChange(option)
-                            onExpandedChange(false)
+                            if (enabled) {
+                                onValueChange(option)
+                                onExpandedChange(false)
+                            }
                         }
                     )
                 }

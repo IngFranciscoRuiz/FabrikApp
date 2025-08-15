@@ -546,7 +546,7 @@ fun ModernConfigField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color(0xFF1A1A1A)) },
         leadingIcon = {
             Icon(
                 imageVector = icon,
@@ -561,7 +561,11 @@ fun ModernConfigField(
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = color,
-            unfocusedBorderColor = Color(0xFFE0E0E0)
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedTextColor = Color(0xFF1A1A1A),
+            unfocusedTextColor = Color(0xFF1A1A1A),
+            focusedLabelColor = color,
+            unfocusedLabelColor = Color(0xFF666666)
         ),
         shape = RoundedCornerShape(12.dp)
     )
@@ -697,12 +701,122 @@ fun ModernConfigExportDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    var selectedLocation by remember { mutableStateOf("Interno") }
+    val locations = listOf("Interno", "Descargas", "Documentos")
+    
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Exportar Datos") },
-        text = { Text("¿Deseas exportar todos los datos de la aplicación?") },
+        title = { 
+            Text(
+                "Exportar Datos",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    "Selecciona dónde guardar el archivo:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF666666)
+                )
+                
+                // Selector de ubicación
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            "Ubicación de guardado:",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        locations.forEach { location ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedLocation = location }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedLocation == location,
+                                    onClick = { selectedLocation = location },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color(0xFF1976D2)
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        location,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        when (location) {
+                                            "Interno" -> "Almacenamiento interno de la app"
+                                            "Descargas" -> "Carpeta de Descargas"
+                                            "Documentos" -> "Carpeta de Documentos"
+                                            else -> ""
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF666666)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Información adicional
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = Color(0xFF1976D2),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "El archivo se guardará con fecha y hora actual",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF1976D2)
+                        )
+                    }
+                }
+            }
+        },
         confirmButton = {
-            Button(onClick = onConfirm) {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50)
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Download,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text("Exportar")
             }
         },
@@ -720,45 +834,157 @@ fun ModernConfigImportDialog(
     onImportarArchivo: (File) -> Unit,
     onDismiss: () -> Unit
 ) {
+    var showFilePicker by remember { mutableStateOf(false) }
+    
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Importar Datos") },
+        title = { 
+            Text(
+                "Importar Datos",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
         text = {
-            if (archivosBackup.isEmpty()) {
-                Text("No se encontraron archivos de backup para importar.")
-            } else {
-                Column {
-                    Text("Selecciona un archivo de backup:")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 200.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    "Selecciona el origen de los datos:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF666666)
+                )
+                
+                // Opción 1: Archivos locales
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        items(archivosBackup) { archivo ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                                    .clickable { onImportarArchivo(archivo) },
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFFF5F5F5)
-                                ),
-                                shape = RoundedCornerShape(8.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Folder,
+                                contentDescription = null,
+                                tint = Color(0xFF1976D2),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Archivos locales",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        if (archivosBackup.isEmpty()) {
+                            Text(
+                                "No se encontraron archivos de backup",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF666666)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 200.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(12.dp)
-                                ) {
-                                    Text(
-                                        text = archivo.name,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "Creado: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(archivo.lastModified()))}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF666666)
-                                    )
+                                items(archivosBackup) { archivo ->
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { onImportarArchivo(archivo) }
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.InsertDriveFile,
+                                                contentDescription = null,
+                                                tint = Color(0xFF1976D2),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    archivo.name,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                                Text(
+                                                    "Toca para importar",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color(0xFF666666)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        }
+                    }
+                }
+                
+                // Opción 2: Seleccionar archivo externo
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Storage,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Seleccionar archivo externo",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            "Busca un archivo .json en tu dispositivo",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF666666)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Button(
+                            onClick = { showFilePicker = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4CAF50)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Buscar archivo")
                         }
                     }
                 }
@@ -770,6 +996,21 @@ fun ModernConfigImportDialog(
             }
         }
     )
+    
+    // Aquí se manejaría la selección de archivo externo
+    // Por ahora solo mostramos un mensaje
+    if (showFilePicker) {
+        AlertDialog(
+            onDismissRequest = { showFilePicker = false },
+            title = { Text("Selección de archivo") },
+            text = { Text("Esta funcionalidad requiere permisos de almacenamiento. Se implementará en una versión futura.") },
+            confirmButton = {
+                TextButton(onClick = { showFilePicker = false }) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
 }
 
 @Composable

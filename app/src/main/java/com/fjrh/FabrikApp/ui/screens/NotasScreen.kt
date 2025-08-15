@@ -350,12 +350,16 @@ fun ModernNotaCard(
                 OutlinedTextField(
                     value = editedNota.contenido,
                     onValueChange = { editedNota = editedNota.copy(contenido = it) },
-                    label = { Text("Contenido") },
+                    label = { Text("Contenido", color = Color(0xFF1A1A1A)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF1976D2),
-                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        focusedLabelColor = Color(0xFF1976D2),
+                        unfocusedLabelColor = Color(0xFF666666)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -447,7 +451,7 @@ fun NotasFormField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color(0xFF1A1A1A)) },
         leadingIcon = {
             Icon(
                 imageVector = icon,
@@ -459,7 +463,11 @@ fun NotasFormField(
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = color,
-            unfocusedBorderColor = Color(0xFFE0E0E0)
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedTextColor = Color(0xFF1A1A1A),
+            unfocusedTextColor = Color(0xFF1A1A1A),
+            focusedLabelColor = color,
+            unfocusedLabelColor = Color(0xFF666666)
         ),
         shape = RoundedCornerShape(12.dp)
     )
@@ -497,12 +505,16 @@ fun ModernAgregarNotaDialog(
                 OutlinedTextField(
                     value = contenido,
                     onValueChange = { contenido = it },
-                    label = { Text("Contenido") },
+                    label = { Text("Contenido", color = Color(0xFF1A1A1A)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 4,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF1976D2),
-                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        focusedLabelColor = Color(0xFF1976D2),
+                        unfocusedLabelColor = Color(0xFF666666)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )

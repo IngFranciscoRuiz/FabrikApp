@@ -21,9 +21,11 @@ import com.fjrh.FabrikApp.ui.viewmodel.InventarioViewModel
 import com.fjrh.FabrikApp.ui.components.TarjetaIngrediente
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
+import androidx.navigation.NavController
 
 @Composable
 fun InventarioScreen(
+    navController: NavController,
     viewModel: InventarioViewModel,
     onAgregarClicked: () -> Unit
 ) {
@@ -60,7 +62,7 @@ fun InventarioScreen(
                     tint = Color(0xFF1A1A1A),
                     modifier = Modifier
                         .size(24.dp)
-                        .clickable { /* Navegar atrás */ }
+                        .clickable { navController.navigateUp() }
                 )
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -116,13 +118,15 @@ fun InventarioScreen(
                     TextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Buscar ingredientes...") },
+                        placeholder = { Text("Buscar ingredientes...", color = Color(0xFF1A1A1A)) },
                         modifier = Modifier.weight(1f),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color(0xFF1A1A1A),
+                            unfocusedTextColor = Color(0xFF1A1A1A)
                         ),
                         textStyle = MaterialTheme.typography.bodyMedium
                     )
@@ -176,7 +180,7 @@ fun InventarioScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(ingredientesFiltrados) { ingrediente ->
-                        ModernIngredientCard(
+                        TarjetaIngrediente(
                             ingrediente = ingrediente,
                             onDelete = { viewModel.eliminarIngrediente(ingrediente) },
                             onEdit = { ingredienteEditado -> viewModel.actualizarIngrediente(ingredienteEditado) },
@@ -271,183 +275,6 @@ fun EmptyState(message: String) {
                 color = Color(0xFF666666),
                 textAlign = TextAlign.Center
             )
-        }
-    }
-}
-
-@Composable
-fun ModernIngredientCard(
-    ingrediente: IngredienteInventarioEntity,
-    onDelete: () -> Unit,
-    onEdit: (IngredienteInventarioEntity) -> Unit,
-    configuracion: ConfiguracionStock? = null
-) {
-    var isEditing by remember { mutableStateOf(false) }
-    var editedIngrediente by remember { mutableStateOf(ingrediente) }
-    
-    val stockAlertService = remember { com.fjrh.FabrikApp.domain.service.StockAlertService() }
-    
-    val colorSemaforo = if (configuracion != null) {
-        stockAlertService.getStockColorInsumo(ingrediente.cantidadDisponible, configuracion)
-    } else {
-        when {
-            ingrediente.cantidadDisponible <= 0 -> Color(0xFFE57373)
-            ingrediente.cantidadDisponible < 10 -> Color(0xFFFFB74D)
-            ingrediente.cantidadDisponible < 50 -> Color(0xFFFFF176)
-            else -> Color(0xFF81C784)
-        }
-    }
-    
-    val textoStock = if (configuracion != null) {
-        stockAlertService.getStockTextInsumo(ingrediente.cantidadDisponible, configuracion)
-    } else {
-        when {
-            ingrediente.cantidadDisponible <= 0 -> "SIN STOCK"
-            ingrediente.cantidadDisponible < 10 -> "STOCK BAJO"
-            ingrediente.cantidadDisponible < 50 -> "STOCK MEDIO"
-            else -> "STOCK OK"
-        }
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            // Header con nombre y estado
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = ingrediente.nombre,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1A1A1A),
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    if (ingrediente.proveedor != null) {
-                        Text(
-                            text = "Proveedor: ${ingrediente.proveedor}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF666666)
-                        )
-                    }
-                }
-                
-                // Indicador de stock
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = colorSemaforo.copy(alpha = 0.1f)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(colorSemaforo, RoundedCornerShape(4.dp))
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = textoStock,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorSemaforo,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Información de stock
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Cantidad disponible",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF666666)
-                    )
-                    Text(
-                        text = "${ingrediente.cantidadDisponible} ${ingrediente.unidad}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1A1A1A),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "Precio unitario",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF666666)
-                    )
-                    Text(
-                        text = "$${ingrediente.costoPorUnidad}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1A1A1A),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Acciones
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(
-                    onClick = { isEditing = !isEditing }
-                ) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Cancel else Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Cancelar" else "Editar",
-                        tint = Color(0xFF1976D2),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = if (isEditing) "Cancelar" else "Editar",
-                        color = Color(0xFF1976D2),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                TextButton(
-                    onClick = { onDelete() }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color(0xFFE57373),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Eliminar",
-                        color = Color(0xFFE57373),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
         }
     }
 }

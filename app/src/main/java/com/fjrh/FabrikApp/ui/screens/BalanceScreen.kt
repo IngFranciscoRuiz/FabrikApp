@@ -491,12 +491,16 @@ fun ModernAgregarMovimientoDialog(
                 OutlinedTextField(
                     value = descripcion,
                     onValueChange = { descripcion = it },
-                    label = { Text("Descripción (opcional)") },
+                    label = { Text("Descripción (opcional)", color = Color(0xFF1A1A1A)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF1976D2),
-                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        focusedTextColor = Color(0xFF1A1A1A),
+                        unfocusedTextColor = Color(0xFF1A1A1A),
+                        focusedLabelColor = Color(0xFF1976D2),
+                        unfocusedLabelColor = Color(0xFF666666)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -548,7 +552,7 @@ fun BalanceFormField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color(0xFF1A1A1A)) },
         leadingIcon = {
             Icon(
                 imageVector = icon,
@@ -560,7 +564,11 @@ fun BalanceFormField(
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = color,
-            unfocusedBorderColor = Color(0xFFE0E0E0)
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedTextColor = Color(0xFF1A1A1A),
+            unfocusedTextColor = Color(0xFF1A1A1A),
+            focusedLabelColor = color,
+            unfocusedLabelColor = Color(0xFF666666)
         ),
         shape = RoundedCornerShape(12.dp)
     )

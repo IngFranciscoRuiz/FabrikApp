@@ -119,6 +119,7 @@ fun AppNavigation(navController: NavHostController) {
         }
         composable("agregar_ingrediente") {
             AgregarIngredienteScreen(
+                navController = navController,
                 viewModel = hiltViewModel(),
                 onGuardarExitoso = {
                     navController.popBackStack() // Regresa a inventario después de guardar

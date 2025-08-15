@@ -441,7 +441,7 @@ fun UnidadesFormField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label) },
+        label = { Text(label, color = Color(0xFF1A1A1A)) },
         leadingIcon = {
             Icon(
                 imageVector = icon,
@@ -453,7 +453,11 @@ fun UnidadesFormField(
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = color,
-            unfocusedBorderColor = Color(0xFFE0E0E0)
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedTextColor = Color(0xFF1A1A1A),
+            unfocusedTextColor = Color(0xFF1A1A1A),
+            focusedLabelColor = color,
+            unfocusedLabelColor = Color(0xFF666666)
         ),
         shape = RoundedCornerShape(12.dp)
     )
