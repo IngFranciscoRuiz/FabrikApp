@@ -5,10 +5,14 @@ import android.content.Context
 import com.fjrh.FabrikApp.data.local.AppDatabase
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import com.fjrh.FabrikApp.data.local.OnboardingDataStore
+import com.fjrh.FabrikApp.data.local.MultiUserDataStore
 import com.fjrh.FabrikApp.data.local.dao.FormulaDao
 import com.fjrh.FabrikApp.data.local.repository.FormulaRepository
 import com.fjrh.FabrikApp.data.local.repository.InventarioRepository
 import com.fjrh.FabrikApp.data.local.service.UnidadesService
+import com.fjrh.FabrikApp.domain.usecase.ErrorHandler
+import com.fjrh.FabrikApp.domain.usecase.SubscriptionManager
+import com.fjrh.FabrikApp.data.remote.FirebaseService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,6 +49,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideMultiUserDataStore(@ApplicationContext context: Context): MultiUserDataStore {
+        return MultiUserDataStore(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideFormulaRepository(db: AppDatabase): FormulaRepository {
         return FormulaRepository(db.formulaDao(), db)
     }
@@ -59,6 +69,35 @@ object AppModule {
     @Singleton
     fun provideUnidadesService(formulaRepository: FormulaRepository): UnidadesService {
         return UnidadesService(formulaRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideErrorHandler(@ApplicationContext context: Context): ErrorHandler {
+        return ErrorHandler(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSubscriptionManager(@ApplicationContext context: Context): SubscriptionManager {
+        return SubscriptionManager(context)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideFirebaseService(): com.fjrh.FabrikApp.data.remote.FirebaseService {
+        return com.fjrh.FabrikApp.data.remote.FirebaseService()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideSyncManager(
+        firebaseService: com.fjrh.FabrikApp.data.remote.FirebaseService,
+        formulaDao: com.fjrh.FabrikApp.data.local.dao.FormulaDao
+    ): com.fjrh.FabrikApp.domain.usecase.SyncManager {
+        return com.fjrh.FabrikApp.domain.usecase.SyncManager(
+            firebaseService, formulaDao
+        )
     }
 }
 

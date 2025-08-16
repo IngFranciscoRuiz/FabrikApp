@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "792427410751",
+    "project_id": "fabrikapp-86d22",
+    "storage_bucket": "fabrikapp-86d22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:792427410751:android:8bd0c77fbd8b8875148f8a",
+        "android_client_info": {
+          "package_name": "com.fjrh.FabrikApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBH3WPrB4U5UAMH8F4oL0Wu0_8gMqDwrgk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

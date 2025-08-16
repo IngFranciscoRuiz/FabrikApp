@@ -78,8 +78,8 @@ fun UnidadesScreen(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2)),
                     shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
+    ) {
+        Text(
                         text = "${unidades.size}",
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.White,

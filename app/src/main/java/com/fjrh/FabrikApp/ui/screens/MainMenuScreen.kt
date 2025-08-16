@@ -2,6 +2,7 @@ package com.fjrh.FabrikApp.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -13,76 +14,570 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import android.widget.Toast
 import com.fjrh.FabrikApp.ui.viewmodel.MainMenuViewModel
 import com.fjrh.FabrikApp.ui.components.FabrikBottomNavigation
+import com.fjrh.FabrikApp.ui.components.SubscriptionStatusIndicator
+import com.fjrh.FabrikApp.ui.components.MultiUserStatusIndicator
+import com.fjrh.FabrikApp.ui.components.SubscriptionGuard
+import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
+import com.fjrh.FabrikApp.ui.viewmodel.LoginViewModel
+import com.fjrh.FabrikApp.domain.usecase.SyncManager
+import com.fjrh.FabrikApp.domain.model.SubscriptionStatus
+import com.fjrh.FabrikApp.data.firebase.WorkspaceHolder
+import com.fjrh.FabrikApp.data.firebase.DataMigrationService
+import com.fjrh.FabrikApp.ui.viewmodel.MultiUserViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainMenuScreen(
     navController: NavController,
-    viewModel: MainMenuViewModel = hiltViewModel()
+    subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .padding(top = 60.dp)
-                .padding(bottom = 100.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item { 
-                WelcomeHeader(
-                    onSettingsClick = { navController.navigate("configuracion") }
-                )
-            }
-            item { MainTrialBanner() }
-            item { MainFeaturesSection(navController) }
-            item { 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    MainFeatureCard(
-                        icon = Icons.Default.Inventory,
-                        title = "Stock Productos",
-                        onClick = { navController.navigate("stock_productos") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    MainFeatureCard(
-                        icon = Icons.Default.History,
-                        title = "Historial",
-                        onClick = { navController.navigate("historial") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-            item { MainKPIsSection(viewModel) }
-            item { MainQuickAccessSection(navController) }
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+    // Inyectar MultiUserViewModel
+    val multiUserViewModel: MultiUserViewModel = hiltViewModel()
+    // Inyectar FirebaseService
+    val firebaseService: com.fjrh.FabrikApp.data.remote.FirebaseService = remember { 
+        com.fjrh.FabrikApp.data.remote.FirebaseService() 
+    }
+    val subscriptionInfo by subscriptionViewModel.subscriptionInfo.collectAsState()
+    val isLoading by subscriptionViewModel.isLoading.collectAsState()
+    val errorMessage by subscriptionViewModel.errorMessage.collectAsState()
+    val successMessage by subscriptionViewModel.successMessage.collectAsState()
+    
+    // Estados para sincronización
+    var isSyncing by remember { mutableStateOf(false) }
+    var syncMessage by remember { mutableStateOf<String?>(null) }
+    var isLoggedIn by remember { mutableStateOf(false) }
+    
+    val isMultiUserActive by multiUserViewModel.isMultiUserActive.collectAsState()
+    var tapCount by remember { mutableStateOf(0) }
+    var lastTapTime by remember { mutableStateOf(0L) }
+    var showMultiUserMessage by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    
+    // Inicializar trial al cargar la pantalla
+    LaunchedEffect(Unit) {
+        subscriptionViewModel.initializeTrial()
+    }
+    
+    // Mostrar mensaje de confirmación por 3 segundos
+    LaunchedEffect(isMultiUserActive) {
+        if (isMultiUserActive) {
+            showMultiUserMessage = true
+            delay(3000)
+            showMultiUserMessage = false
         }
-        
+    }
+    
+    // Bloquear toda la app si el trial expiró
+    SubscriptionGuard(
+        subscriptionInfo = subscriptionInfo,
+        featureName = "main_app",
+        onSubscribe = { navController.navigate("subscription") }
+    ) {
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            FabrikBottomNavigation(navController)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 60.dp)
+                    .padding(bottom = 100.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item { 
+                    WelcomeHeader(
+                        onSettingsClick = { navController.navigate("configuracion") },
+                        onMultiUserActivated = {
+                            multiUserViewModel.setMultiUserActive(true)
+                            // Navegar automáticamente a login cuando se active multiusuario
+                            navController.navigate("login")
+                        },
+                        tapCount = tapCount,
+                        onTapCountChange = { tapCount = it },
+                        lastTapTime = lastTapTime,
+                        onLastTapTimeChange = { lastTapTime = it }
+                    )
+                }
+                item { 
+                    SubscriptionStatusIndicator(
+                        subscriptionInfo = subscriptionInfo,
+                        onSubscribe = { navController.navigate("subscription") }
+                    )
+                }
+                item { 
+                    if (isMultiUserActive) {
+                        MultiUserStatusIndicator(
+                            isMultiUserActive = isMultiUserActive,
+                            currentUser = "Usuario Principal",
+                            onSwitchUser = { 
+                                // Cerrar sesión y volver a login
+                                firebaseService.signOut()
+                                multiUserViewModel.clearMultiUserState()
+                                navController.navigate("login") {
+                                    popUpTo("menu") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                }
+                
+                // Botón para copiar WID del workspace
+                item {
+                    // Debug logs
+                    println("MainMenuScreen: isMultiUserActive = $isMultiUserActive")
+                    println("MainMenuScreen: WorkspaceHolder.isInitialized() = ${WorkspaceHolder.isInitialized()}")
+                    
+                    if (isMultiUserActive && WorkspaceHolder.isInitialized()) {
+                        val clipboard = LocalClipboardManager.current
+                        val context = LocalContext.current
+                        val wid = remember { WorkspaceHolder.get() }
+                        
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Código de Workspace",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                    Text(
+                                        text = wid,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        clipboard.setText(AnnotatedString(wid))
+                                        Toast.makeText(context, "Código copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Default.ContentCopy,
+                                        contentDescription = "Copiar código",
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Debug: Mostrar estado del workspace
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFE3F2FD)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = "🔍 Debug: Estado del Workspace",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF1976D2)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Multiusuario: $isMultiUserActive",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF1976D2)
+                            )
+                            Text(
+                                text = "Workspace inicializado: ${WorkspaceHolder.isInitialized()}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF1976D2)
+                            )
+                            if (WorkspaceHolder.isInitialized()) {
+                                Text(
+                                    text = "WID: ${WorkspaceHolder.get()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF1976D2),
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                item { 
+                    // Botón de testing temporal - ELIMINAR EN PRODUCCIÓN
+                    // Mostrar solo cuando NO esté en modo multiusuario
+                    if (!isMultiUserActive) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFFFF3E0)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = Color(0xFFFF9800),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Testing: Simular trial",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFFE65100),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    TextButton(
+                                        onClick = { 
+                                            subscriptionViewModel.clearSubscriptionData()
+                                            subscriptionViewModel.initializeTrial()
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Reset",
+                                            color = Color(0xFFE65100),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    TextButton(
+                                        onClick = { 
+                                            subscriptionViewModel.simulateTrialDays(1)
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "1 día",
+                                            color = Color(0xFFE65100),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    
+                                    TextButton(
+                                        onClick = { 
+                                            subscriptionViewModel.simulateTrialDays(3)
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "3 días",
+                                            color = Color(0xFFE65100),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    
+
+                                    
+                                    TextButton(
+                                        onClick = { 
+                                            subscriptionViewModel.activatePremium()
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Premium",
+                                            color = Color(0xFF4CAF50),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    
+                                                                    TextButton(
+                                    onClick = { 
+                                        subscriptionViewModel.activatePremiumWithCode(
+                                            "FAB-PM-2024-000002", 
+                                            com.fjrh.FabrikApp.data.remote.FirebaseService()
+                                        )
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Código Firebase",
+                                        color = Color(0xFF9C27B0),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                
+                                TextButton(
+                                    onClick = { navController.navigate("login") }
+                                ) {
+                                    Text(
+                                        text = "Login/Registro",
+                                        color = Color(0xFF2196F3),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                
+                                TextButton(
+                                    onClick = { 
+                                        isSyncing = true
+                                        syncMessage = "Sincronizando..."
+                                        // Aquí iría la lógica de sincronización
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Sincronizar",
+                                        color = Color(0xFF4CAF50),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                
+                                TextButton(
+                                    onClick = {
+                                        scope.launch {
+                                            try {
+                                                println("=== PROBANDO FIREBASE ===")
+                                                val firebaseService = com.fjrh.FabrikApp.data.remote.FirebaseService()
+                                                val currentUser = firebaseService.getCurrentUser()
+                                                if (currentUser != null) {
+                                                    println("✅ Usuario autenticado: ${currentUser.email}")
+                                                    println("✅ UID: ${currentUser.uid}")
+                                                    
+                                                    // Probar descarga de datos
+                                                    println("🔍 Probando descarga de ingredientes...")
+                                                    val ingredientesResult = firebaseService.downloadIngredientes()
+                                                    when (ingredientesResult) {
+                                                        is com.fjrh.FabrikApp.domain.result.Result.Success -> {
+                                                            println("✅ Descarga exitosa: ${ingredientesResult.data.size} ingredientes")
+                                                            ingredientesResult.data.forEach { ingrediente ->
+                                                                println("📦 ${ingrediente.nombre} (ID: ${ingrediente.id})")
+                                                            }
+                                                        }
+                                                        is com.fjrh.FabrikApp.domain.result.Result.Error -> {
+                                                            println("❌ Error en descarga: ${ingredientesResult.exception.message}")
+                                                            ingredientesResult.exception.printStackTrace()
+                                                        }
+                                                        is com.fjrh.FabrikApp.domain.result.Result.Loading -> {
+                                                            println("⏳ Descarga en progreso...")
+                                                        }
+                                                    }
+                                                } else {
+                                                    println("❌ No hay usuario autenticado")
+                                                }
+                                                println("=== FIN PRUEBA FIREBASE ===")
+                                            } catch (e: Exception) {
+                                                println("❌ Error probando Firebase: ${e.message}")
+                                                e.printStackTrace()
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = "🔍 Probar Firebase",
+                                        color = Color(0xFFFF9800),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                
+
+                                }
+                            }
+                        }
+                    }
+                }
+                item { MainFeaturesSection(navController) }
+                item { 
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        MainFeatureCard(
+                            icon = Icons.Default.Inventory,
+                            title = "Stock Productos",
+                            onClick = { navController.navigate("stock_productos") },
+                            modifier = Modifier.weight(1f)
+                        )
+                        MainFeatureCard(
+                            icon = Icons.Default.History,
+                            title = "Historial",
+                            onClick = { navController.navigate("historial") },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                item { MainKPIsSection(hiltViewModel()) }
+                item { MainQuickAccessSection(navController) }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp)
+            ) {
+                FabrikBottomNavigation(navController)
+            }
+            
+            // Indicador de toques para multiusuario
+            if (tapCount > 0 && tapCount < 3) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 100.dp)
+                        .padding(horizontal = 20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF2196F3)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TouchApp,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Toques: $tapCount/3",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            
+            // Mensaje de confirmación de multiusuario
+            if (showMultiUserMessage) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 100.dp)
+                        .padding(horizontal = 20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.People,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "¡Modo Multiusuario Activado!",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            
+            // Indicador de sincronización
+            if (isSyncing) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 160.dp)
+                        .padding(horizontal = 20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFE3F2FD)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color(0xFF1976D2)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = syncMessage ?: "Sincronizando...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF1976D2),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 fun WelcomeHeader(
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onMultiUserActivated: () -> Unit,
+    tapCount: Int,
+    onTapCountChange: (Int) -> Unit,
+    lastTapTime: Long,
+    onLastTapTimeChange: (Long) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -93,7 +588,25 @@ fun WelcomeHeader(
             text = "FabrikApp",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .weight(1f)
+                .clickable {
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastTapTime < 2000) { // 2 segundos para contar toques
+                        val newTapCount = tapCount + 1
+                        onTapCountChange(newTapCount)
+                        onLastTapTimeChange(currentTime)
+                        
+                        if (newTapCount >= 3) {
+                            onMultiUserActivated()
+                            onTapCountChange(0) // Reset contador
+                        }
+                    } else {
+                        onTapCountChange(1)
+                        onLastTapTimeChange(currentTime)
+                    }
+                }
         )
         
         IconButton(
@@ -353,12 +866,12 @@ fun MainKPICard(title: String, value: String, color: Color, modifier: Modifier =
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+                Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 color = color,
-                fontWeight = FontWeight.Bold
-            )
+                    fontWeight = FontWeight.Bold
+                )
             
             Spacer(modifier = Modifier.width(8.dp))
             

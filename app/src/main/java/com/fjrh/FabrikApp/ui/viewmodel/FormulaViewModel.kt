@@ -24,7 +24,8 @@ import com.fjrh.FabrikApp.domain.util.UnitConversionUtil
 @HiltViewModel
 class FormulaViewModel @Inject constructor(
     private val repository: FormulaRepository,
-    private val agregarFormulaUseCase: AgregarFormulaUseCase
+    private val agregarFormulaUseCase: AgregarFormulaUseCase,
+    private val syncManager: com.fjrh.FabrikApp.domain.usecase.SyncManager
 ) : ViewModel() {
 
     val formulas: StateFlow<List<FormulaConIngredientes>> =
@@ -48,8 +49,15 @@ class FormulaViewModel @Inject constructor(
 
     fun guardarFormula(formula: Formula) {
         viewModelScope.launch {
-            agregarFormulaUseCase(formula)
+            val formulaEntity = agregarFormulaUseCase(formula)
             _uiEvent.emit(UiEvent.FormulaGuardada)
+            
+            // Sincronizar automáticamente con Firebase
+            try {
+                syncManager.syncNewFormula(formulaEntity)
+            } catch (e: Exception) {
+                println("Error en sincronización automática: ${e.message}")
+            }
         }
     }
 

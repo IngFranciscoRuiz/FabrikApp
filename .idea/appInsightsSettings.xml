@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.fjrh.FabrikApp" />
+                  <option name="mobileSdkAppId" value="1:792427410751:android:8bd0c77fbd8b8875148f8a" />
+                  <option name="projectId" value="fabrikapp-86d22" />
+                  <option name="projectNumber" value="792427410751" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

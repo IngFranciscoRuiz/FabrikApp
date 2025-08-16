@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BalanceViewModel @Inject constructor(
-    private val repository: FormulaRepository
+    private val repository: FormulaRepository,
+    private val syncManager: com.fjrh.FabrikApp.domain.usecase.SyncManager
 ) : ViewModel() {
 
     private val _balance = repository.getBalance()
@@ -34,6 +35,13 @@ class BalanceViewModel @Inject constructor(
     fun agregarMovimiento(movimiento: BalanceEntity) {
         viewModelScope.launch {
             repository.insertarBalance(movimiento)
+            
+            // Sincronizar automáticamente con Firebase
+            try {
+                syncManager.syncNewBalance(movimiento)
+            } catch (e: Exception) {
+                println("Error en sincronización automática de balance: ${e.message}")
+            }
         }
     }
 

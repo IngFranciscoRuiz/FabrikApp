@@ -9,7 +9,7 @@ import javax.inject.Inject
 class AgregarFormulaUseCase @Inject constructor(
     private val repository: FormulaRepository
 ) {
-    suspend operator fun invoke(formula: Formula) {
+    suspend operator fun invoke(formula: Formula): FormulaEntity {
         val formulaEntity = FormulaEntity(nombre = formula.nombre)
         val ingredientes = formula.ingredientes.map { ingrediente ->
             IngredienteEntity(
@@ -20,9 +20,15 @@ class AgregarFormulaUseCase @Inject constructor(
                 costoPorUnidad = ingrediente.costoPorUnidad
             )
         }
-        repository.insertarFormulaConIngredientes(
-            formulaEntity,
-            ingredientes
-        )
+        
+        // Insertar la fórmula primero para obtener el ID
+        val formulaId = repository.insertarFormula(formulaEntity)
+        val formulaConId = formulaEntity.copy(id = formulaId)
+        
+        // Insertar ingredientes con el ID correcto de la fórmula
+        val ingredientesConId = ingredientes.map { it.copy(formulaId = formulaId) }
+        repository.insertarIngredientes(ingredientesConId)
+        
+        return formulaConId
     }
 } 

@@ -189,7 +189,7 @@ fun PedidosProveedorScreen(
                 }
             }
         }
-        
+
         // FAB para agregar nuevo pedido
         FloatingActionButton(
             onClick = { showAddDialog = true },
@@ -319,18 +319,18 @@ fun ModernPedidoCard(
             }
         },
         dismissContent = {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
+    ) {
+        Column(
                     modifier = Modifier.padding(20.dp)
-                ) {
+        ) {
                     // Header con icono y monto
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -344,13 +344,13 @@ fun ModernPedidoCard(
                         
                         Column(
                             modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = pedido.nombreProveedor,
-                                style = MaterialTheme.typography.titleMedium,
+            ) {
+                Text(
+                    text = pedido.nombreProveedor,
+                    style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold
-                            )
+                    fontWeight = FontWeight.Bold
+                )
                             
                             Text(
                                 text = dateFormat.format(Date(pedido.fecha)),
@@ -359,14 +359,14 @@ fun ModernPedidoCard(
                             )
                         }
                         
-                        Text(
-                            text = "$${String.format("%.2f", pedido.monto)}",
+                Text(
+                    text = "$${String.format("%.2f", pedido.monto)}",
                             style = MaterialTheme.typography.titleLarge,
                             color = Color(0xFFD32F2F),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Detalles del pedido distribuidos
@@ -386,9 +386,9 @@ fun ModernPedidoCard(
                             )
                             
                             Spacer(modifier = Modifier.height(4.dp))
-                            
-                            Text(
-                                text = pedido.productos,
+            
+            Text(
+                text = pedido.productos,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
@@ -407,10 +407,10 @@ fun ModernPedidoCard(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                         fontWeight = FontWeight.Medium
-                                    )
-                                    
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
                                     Text(
                                         text = descripcion,
                                         style = MaterialTheme.typography.bodyMedium,
@@ -426,8 +426,8 @@ fun ModernPedidoCard(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Estado y acciones
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -435,28 +435,28 @@ fun ModernPedidoCard(
                         Card(
                             colors = CardDefaults.cardColors(containerColor = colorEstado),
                             shape = RoundedCornerShape(20.dp)
-                        ) {
-                            Text(
-                                text = pedido.estado,
-                                style = MaterialTheme.typography.bodySmall,
+                ) {
+                    Text(
+                        text = pedido.estado,
+                        style = MaterialTheme.typography.bodySmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
+                    )
                         }
-                        
+                    
                         // Botón de marcar como pagado
-                        if (pedido.estado == "PENDIENTE") {
+                    if (pedido.estado == "PENDIENTE") {
                             Button(
-                                onClick = {
-                                    val pedidoActualizado = pedido.copy(estado = "PAGADO")
-                                    onEstadoChanged(pedidoActualizado)
-                                },
+                            onClick = {
+                                val pedidoActualizado = pedido.copy(estado = "PAGADO")
+                                onEstadoChanged(pedidoActualizado)
+                            },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                                 shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp)
                                 )
@@ -533,8 +533,8 @@ fun ModernAgregarPedidoDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = nombreProveedor,
-                            onValueChange = { nombreProveedor = it },
+                    value = nombreProveedor,
+                    onValueChange = { nombreProveedor = it },
                             placeholder = { Text("Ingresa el nombre del proveedor") },
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
@@ -567,10 +567,10 @@ fun ModernAgregarPedidoDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = productos,
-                            onValueChange = { productos = it },
+                    value = productos,
+                    onValueChange = { productos = it },
                             placeholder = { Text("Describe los productos pedidos") },
-                            modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                             minLines = 3,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.White,
@@ -602,15 +602,15 @@ fun ModernAgregarPedidoDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = monto,
-                            onValueChange = { 
-                                if (validarPrecio(it)) {
-                                    monto = it
-                                }
-                            },
+                    value = monto,
+                    onValueChange = { 
+                        if (validarPrecio(it)) {
+                            monto = it
+                        }
+                    },
                             placeholder = { Text("Ingresa el monto") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
@@ -641,8 +641,8 @@ fun ModernAgregarPedidoDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = descripcion,
-                            onValueChange = { descripcion = it },
+                    value = descripcion,
+                    onValueChange = { descripcion = it },
                             placeholder = { Text("Agrega una descripción") },
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
@@ -676,14 +676,14 @@ fun ModernAgregarPedidoDialog(
                         
                         Box {
                             TextField(
-                                value = estado,
-                                onValueChange = { estado = it },
+                        value = estado,
+                        onValueChange = { estado = it },
                                 placeholder = { Text("Seleccionar estado") },
-                                readOnly = true,
-                                trailingIcon = {
-                                    IconButton(onClick = { expandedEstado = !expandedEstado }) {
-                                        Icon(
-                                            imageVector = if (expandedEstado) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { expandedEstado = !expandedEstado }) {
+                                Icon(
+                                    imageVector = if (expandedEstado) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                             contentDescription = "Expandir",
                                             tint = Color(0xFF666666)
                                         )
@@ -698,17 +698,17 @@ fun ModernAgregarPedidoDialog(
                                     focusedTextColor = Color(0xFF1A1A1A),
                                     unfocusedTextColor = Color(0xFF1A1A1A)
                                 )
-                            )
-                            
-                            DropdownMenu(
-                                expanded = expandedEstado,
-                                onDismissRequest = { expandedEstado = false },
+                    )
+                    
+                    DropdownMenu(
+                        expanded = expandedEstado,
+                        onDismissRequest = { expandedEstado = false },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(Color.White)
-                            ) {
-                                listOf("PENDIENTE", "PAGADO").forEach { estadoOption ->
-                                    DropdownMenuItem(
+                    ) {
+                        listOf("PENDIENTE", "PAGADO").forEach { estadoOption ->
+                            DropdownMenuItem(
                                         text = { 
                                             Text(
                                                 text = estadoOption,
@@ -716,11 +716,11 @@ fun ModernAgregarPedidoDialog(
                                                 color = Color(0xFF1A1A1A)
                                             )
                                         },
-                                        onClick = {
-                                            estado = estadoOption
-                                            expandedEstado = false
-                                        }
-                                    )
+                                onClick = {
+                                    estado = estadoOption
+                                    expandedEstado = false
+                                }
+                            )
                                 }
                             }
                         }

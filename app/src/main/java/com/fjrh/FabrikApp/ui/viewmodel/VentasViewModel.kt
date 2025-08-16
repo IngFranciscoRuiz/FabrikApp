@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VentasViewModel @Inject constructor(
-    private val repository: FormulaRepository
+    private val repository: FormulaRepository,
+    private val syncManager: com.fjrh.FabrikApp.domain.usecase.SyncManager
 ) : ViewModel() {
 
     val ventas: StateFlow<List<VentaEntity>> =
@@ -35,7 +36,14 @@ class VentasViewModel @Inject constructor(
                 // 2. Insertar la venta
                 repository.insertarVenta(venta)
                 
-                // 3. Registrar ingreso en balance
+                // 3. Sincronizar automáticamente con Firebase
+                try {
+                    syncManager.syncNewVenta(venta)
+                } catch (e: Exception) {
+                    println("Error en sincronización automática: ${e.message}")
+                }
+                
+                // 4. Registrar ingreso en balance
                 val ingreso = BalanceEntity(
                     fecha = System.currentTimeMillis(),
                     tipo = "INGRESO",

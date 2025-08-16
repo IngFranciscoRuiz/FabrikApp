@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NotasViewModel @Inject constructor(
-    private val repository: FormulaRepository
+    private val repository: FormulaRepository,
+    private val syncManager: com.fjrh.FabrikApp.domain.usecase.SyncManager
 ) : ViewModel() {
 
     val notas: StateFlow<List<NotaEntity>> =
@@ -21,6 +22,13 @@ class NotasViewModel @Inject constructor(
     fun agregarNota(nota: NotaEntity) {
         viewModelScope.launch {
             repository.insertarNota(nota)
+            
+            // Sincronizar automáticamente con Firebase
+            try {
+                syncManager.syncNewNota(nota)
+            } catch (e: Exception) {
+                println("Error en sincronización automática de nota: ${e.message}")
+            }
         }
     }
 

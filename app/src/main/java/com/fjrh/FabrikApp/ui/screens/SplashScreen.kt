@@ -21,9 +21,11 @@ import com.fjrh.FabrikApp.R
 import com.fjrh.FabrikApp.ui.theme.FabrikAppBlue
 import com.fjrh.FabrikApp.ui.theme.FabrikAppBlueDark
 import com.fjrh.FabrikApp.ui.viewmodel.OnboardingViewModel
+import com.fjrh.FabrikApp.ui.navigation.Routes
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun SplashScreen(
@@ -44,12 +46,12 @@ fun SplashScreen(
         val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
         
         if (hasSeenOnboarding) {
-            navController.navigate("menu") {
-                popUpTo("splash") { inclusive = true }
+            navController.navigate(Routes.Menu) {
+                popUpTo(Routes.Splash) { inclusive = true }
             }
         } else {
             navController.navigate("onboarding") {
-                popUpTo("splash") { inclusive = true }
+                popUpTo(Routes.Splash) { inclusive = true }
             }
         }
     }

@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Utilidades ---
+    function isAuthed() { return request.auth != null; }
+
+    function isMember(workspaceId) {
+      return isAuthed() &&
+        (request.auth.uid in
+          get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.members);
+    }
+
+    // Roles opcionales: "owner" | "editor" | "viewer"
+    function roleOf(workspaceId) {
+      return get(/databases/$(database)/documents/workspaces/$(workspaceId))
+        .data.roles[request.auth.uid];
+    }
+
+    // --- Lo que ya usas ---
+    match /activation_codes_premium_monthly/{codeId} {
+      allow read, write: if isAuthed();
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAuthed() && request.auth.uid == userId;
+    }
+
+    match /user_data/{userId} {
+      allow read, write: if isAuthed() && request.auth.uid == userId;
+    }
+
+    // Catalogo/compartido actual (lo mantenemos por ahora)
+    match /shared_data/{collection}/{document=**} {
+      allow read, write: if isAuthed();
+      // Cuando migremos todo a workspaces, podrás cerrar writes:
+      // allow read: if isAuthed();
+      // allow write: if false;
+    }
+
+    // --- Multi-tenant: workspaces ---
+    // workspaces/{workspaceId}:
+    // { name, ownerUid, members: [uids], roles: {uid: "owner"|"editor"|"viewer"}, createdAt }
+    match /workspaces/{workspaceId} {
+      // Crear: el creador debe estar incluido en members
+      allow create: if isAuthed()
+        && request.resource.data.members is list
+        && request.auth.uid in request.resource.data.members;
+
+      // Leer meta del workspace si eres miembro
+      allow read: if isMember(workspaceId);
+
+      // Actualizar/borrar meta del workspace (por ahora solo owner)
+      allow update, delete: if isMember(workspaceId) && roleOf(workspaceId) == "owner";
+    }
+
+    // Subcolecciones del workspace (inventory, formulas, batches, sales, etc.)
+    match /workspaces/{workspaceId}/{document=**} {
+      // Miembros pueden leer y escribir datos del workspace
+      allow read, write: if isMember(workspaceId);
+      // Si quieres endurecer:
+      // allow write: if isMember(workspaceId) && roleOf(workspaceId) in ["owner","editor"];
+    }
+
+    // Denegar el resto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

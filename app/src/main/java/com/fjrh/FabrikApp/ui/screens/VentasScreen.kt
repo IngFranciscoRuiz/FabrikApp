@@ -338,13 +338,13 @@ fun ModernVentaCard(
                         
                         Column(
                             modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = venta.nombreProducto,
-                                style = MaterialTheme.typography.titleMedium,
+            ) {
+                Text(
+                    text = venta.nombreProducto,
+                    style = MaterialTheme.typography.titleMedium,
                                 color = Color(0xFF1A1A1A),
-                                fontWeight = FontWeight.Bold
-                            )
+                    fontWeight = FontWeight.Bold
+                )
                             
                             Text(
                                 text = dateFormat.format(Date(venta.fecha)),
@@ -353,11 +353,11 @@ fun ModernVentaCard(
                             )
                         }
                         
-                        Text(
-                            text = "$${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}",
+                Text(
+                    text = "$${String.format("%.2f", venta.litrosVendidos * venta.precioPorLitro)}",
                             style = MaterialTheme.typography.titleLarge,
                             color = Color(0xFF4CAF50),
-                            fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold
                         )
                     }
                     
@@ -385,15 +385,15 @@ fun ModernVentaCard(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color(0xFF1A1A1A),
                                     fontWeight = FontWeight.Medium
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                                 Text(
                                     text = "Precio por litro:",
                                     style = MaterialTheme.typography.bodyMedium,
@@ -414,12 +414,12 @@ fun ModernVentaCard(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(
+            Text(
                                         text = "Cliente:",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color(0xFF666666)
                                     )
-                                    Text(
+                Text(
                                         text = cliente,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color(0xFF1A1A1A),
@@ -427,11 +427,11 @@ fun ModernVentaCard(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        }
-                    }
+                )
+            }
+        }
+    }
+}
                 }
             }
         }
@@ -497,14 +497,14 @@ fun ModernAgregarVentaDialog(
                         
                         Box {
                             TextField(
-                                value = selectedProducto,
-                                onValueChange = { selectedProducto = it },
+                        value = selectedProducto,
+                        onValueChange = { selectedProducto = it },
                                 placeholder = { Text("Seleccionar producto") },
-                                readOnly = true,
-                                trailingIcon = {
-                                    IconButton(onClick = { expanded = !expanded }) {
-                                        Icon(
-                                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(
+                                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                             contentDescription = "Expandir",
                                             tint = Color(0xFF666666)
                                         )
@@ -519,17 +519,17 @@ fun ModernAgregarVentaDialog(
                                     focusedTextColor = Color(0xFF1A1A1A),
                                     unfocusedTextColor = Color(0xFF1A1A1A)
                                 )
-                            )
-                            
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false },
-                                modifier = Modifier
-                                    .fillMaxWidth()
+                    )
+                    
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
                                     .background(Color.White)
-                            ) {
-                                stockProductos.filter { it.stock > 0 }.forEach { producto ->
-                                    DropdownMenuItem(
+                    ) {
+                        stockProductos.filter { it.stock > 0 }.forEach { producto ->
+                            DropdownMenuItem(
                                         text = { 
                                             Text(
                                                 text = "${producto.nombre} (${producto.stock} L disponible)",
@@ -537,14 +537,14 @@ fun ModernAgregarVentaDialog(
                                                 color = Color(0xFF1A1A1A)
                                             )
                                         },
-                                        onClick = {
-                                            selectedProducto = producto.nombre
-                                            expanded = false
-                                        }
-                                    )
+                                onClick = {
+                                    selectedProducto = producto.nombre
+                                    expanded = false
                                 }
-                            }
+                            )
                         }
+                    }
+                }
                     }
                 }
 
@@ -566,15 +566,15 @@ fun ModernAgregarVentaDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = litrosVendidos,
-                            onValueChange = { 
-                                if (validarLitros(it)) {
-                                    litrosVendidos = it
-                                }
-                            },
+                    value = litrosVendidos,
+                    onValueChange = { 
+                        if (validarLitros(it)) {
+                            litrosVendidos = it
+                        }
+                    },
                             placeholder = { Text("Ingresa los litros") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
@@ -605,15 +605,15 @@ fun ModernAgregarVentaDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = precioPorLitro,
-                            onValueChange = { 
-                                if (validarPrecio(it)) {
-                                    precioPorLitro = it
-                                }
-                            },
+                    value = precioPorLitro,
+                    onValueChange = { 
+                        if (validarPrecio(it)) {
+                            precioPorLitro = it
+                        }
+                    },
                             placeholder = { Text("Ingresa el precio") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.White,
                                 unfocusedContainerColor = Color.White,
@@ -644,8 +644,8 @@ fun ModernAgregarVentaDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         TextField(
-                            value = cliente,
-                            onValueChange = { cliente = it },
+                    value = cliente,
+                    onValueChange = { cliente = it },
                             placeholder = { Text("Nombre del cliente") },
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.colors(

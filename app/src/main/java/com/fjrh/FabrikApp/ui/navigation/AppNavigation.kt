@@ -16,12 +16,17 @@ import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import com.google.gson.Gson
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import com.fjrh.FabrikApp.ui.screens.MainMenuScreen
+import com.fjrh.FabrikApp.ui.screens.SubscriptionScreen
+import com.fjrh.FabrikApp.ui.screens.LoginScreen
+import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
+import com.fjrh.FabrikApp.ui.viewmodel.LoginViewModel
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "splash") {
+    NavHost(navController = navController, startDestination = Routes.Splash) {
 
-        composable("splash") {
+        composable(Routes.Splash) {
             SplashScreen(navController)
         }
 
@@ -29,18 +34,18 @@ fun AppNavigation(navController: NavHostController) {
             OnboardingScreen(navController)
         }
 
-        composable("menu") {
+        composable(Routes.Menu) {
             MainMenuScreen(navController)
         }
 
-        composable("formulas") {
+        composable(Routes.Formulas) {
             ListaFormulasScreen(
                 navController = navController,
                 viewModel = hiltViewModel()
             )
         }
 
-        composable("nueva_formula") {
+        composable(Routes.NuevaFormula) {
             println("DEBUG: === NAVEGACIÓN A nueva_formula ===")
             NuevaFormulaScreen(
                 navController = navController,
@@ -49,7 +54,7 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable(
-            route = "editar_formula/{formulaJson}",
+            route = "${Routes.EditarFormula}/{formulaJson}",
             arguments = listOf(navArgument("formulaJson") { type = NavType.StringType })
         ) { backStackEntry ->
             println("DEBUG: === NAVEGACIÓN A editar_formula ===")
@@ -114,10 +119,10 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        composable("inventario") {
+        composable(Routes.Inventario) {
             InventarioScreenRoute(navController) // Ya inyecta su ViewModel adentro
         }
-        composable("agregar_ingrediente") {
+        composable(Routes.AgregarIngrediente) {
             AgregarIngredienteScreen(
                 navController = navController,
                 viewModel = hiltViewModel(),
@@ -126,12 +131,12 @@ fun AppNavigation(navController: NavHostController) {
                 }
             )
         }
-        composable("historial") {
+        composable(Routes.Historial) {
             HistorialScreen(navController = navController, viewModel = hiltViewModel())
         }
 
         // Producción sin fórmula
-        composable("produccion") {
+        composable(Routes.Produccion) {
             ProduccionScreen(
                 navController = navController,
                 formula = null,
@@ -160,11 +165,11 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        composable("stock_productos") {
+        composable(Routes.StockProductos) {
             StockProductosScreen(navController)
         }
 
-        composable("ventas") {
+        composable(Routes.Ventas) {
             VentasScreen(navController)
         }
 
@@ -172,11 +177,11 @@ fun AppNavigation(navController: NavHostController) {
             FinanzasHubScreen(navController)
         }
 
-        composable("balance") {
+        composable(Routes.Balance) {
             BalanceScreen(navController)
         }
 
-        composable("notas") {
+        composable(Routes.Notas) {
             NotasScreen(navController)
         }
 
@@ -184,11 +189,11 @@ fun AppNavigation(navController: NavHostController) {
             UnidadesScreen(navController)
         }
 
-        composable("pedidos_proveedor") {
+        composable(Routes.PedidosProveedor) {
             PedidosProveedorScreen(navController)
         }
 
-        composable("configuracion") {
+        composable(Routes.Configuracion) {
             ConfiguracionScreen(navController)
         }
 
@@ -203,6 +208,27 @@ fun AppNavigation(navController: NavHostController) {
 
         composable("nueva_venta") {
             VentasScreen(navController)
+        }
+
+        composable(Routes.Subscription) {
+            SubscriptionScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSubscribe = {
+                    // Aquí iría la lógica de pago
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Routes.Login) {
+            LoginScreen(
+                navController = navController, 
+                loginViewModel = hiltViewModel()
+            )
+        }
+
+        composable(Routes.WorkspaceGate) {
+            WorkspaceGateScreen(navController)
         }
     }
 }

@@ -67,7 +67,7 @@ fun ConfiguracionScreen(
     }
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
-    var stockBajoProductos by remember { mutableStateOf("") }
+        var stockBajoProductos by remember { mutableStateOf("") }
     var stockAltoInsumos by remember { mutableStateOf("") }
     var stockMedioInsumos by remember { mutableStateOf("") }
     var stockBajoInsumos by remember { mutableStateOf("") }
@@ -90,13 +90,13 @@ fun ConfiguracionScreen(
 
     // Cargar configuración inicial
     LaunchedEffect(Unit) {
-        viewModel.configuracion.collect { config ->
-            stockAltoProductos = config.stockAltoProductos.toString()
-            stockMedioProductos = config.stockMedioProductos.toString()
-            stockBajoProductos = config.stockBajoProductos.toString()
-            stockAltoInsumos = config.stockAltoInsumos.toString()
-            stockMedioInsumos = config.stockMedioInsumos.toString()
-            stockBajoInsumos = config.stockBajoInsumos.toString()
+                        viewModel.configuracion.collect { config ->
+                    stockAltoProductos = config.stockAltoProductos.toString()
+                    stockMedioProductos = config.stockMedioProductos.toString()
+                    stockBajoProductos = config.stockBajoProductos.toString()
+                    stockAltoInsumos = config.stockAltoInsumos.toString()
+                    stockMedioInsumos = config.stockMedioInsumos.toString()
+                    stockBajoInsumos = config.stockBajoInsumos.toString()
             backupAutomatico = config.backupAutomatico
             frecuenciaBackup = config.frecuenciaBackup.toString()
             temaOscuro = config.temaOscuro
@@ -149,13 +149,13 @@ fun ConfiguracionScreen(
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
-                Text(
+            Text(
                     text = "Configuración",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
-                
+                fontWeight = FontWeight.Bold
+            )
+
                 Spacer(modifier = Modifier.weight(1f))
                 
                 Icon(
@@ -185,7 +185,7 @@ fun ConfiguracionScreen(
                         color = Color(0xFF1A1A1A),
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
@@ -280,7 +280,7 @@ fun ConfiguracionScreen(
                         )
                         viewModel.guardarConfiguracion(config)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF4CAF50)
                     ),
@@ -425,7 +425,7 @@ fun ConfiguracionScreen(
                         
                         Spacer(modifier = Modifier.width(12.dp))
                         
-                        Text(
+                     Text(
                             text = msg,
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (msg.contains("Error")) 
@@ -457,19 +457,19 @@ fun ConfiguracionScreen(
         if (showSaveDialog) {
             ModernConfigSaveDialog(
                 onConfirm = {
-                    val config = ConfiguracionStock(
-                        stockAltoProductos = stockAltoProductos.toFloatOrNull() ?: 100f,
-                        stockMedioProductos = stockMedioProductos.toFloatOrNull() ?: 50f,
-                        stockBajoProductos = stockBajoProductos.toFloatOrNull() ?: 25f,
-                        stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
-                        stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
+                                                                                     val config = ConfiguracionStock(
+                                stockAltoProductos = stockAltoProductos.toFloatOrNull() ?: 100f,
+                                stockMedioProductos = stockMedioProductos.toFloatOrNull() ?: 50f,
+                                stockBajoProductos = stockBajoProductos.toFloatOrNull() ?: 25f,
+                                stockAltoInsumos = stockAltoInsumos.toFloatOrNull() ?: 200f,
+                                stockMedioInsumos = stockMedioInsumos.toFloatOrNull() ?: 100f,
                         stockBajoInsumos = stockBajoInsumos.toFloatOrNull() ?: 50f,
                         backupAutomatico = backupAutomatico,
                         frecuenciaBackup = frecuenciaBackup.toIntOrNull() ?: 7,
                         temaOscuro = temaOscuro
-                    )
-                    viewModel.guardarConfiguracion(config)
-                    showSaveDialog = false
+                            )
+                            viewModel.guardarConfiguracion(config)
+                            showSaveDialog = false
                 },
                 onDismiss = { showSaveDialog = false }
             )
@@ -875,11 +875,11 @@ fun ModernConfigExportDialog(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Exportar")
-            }
-        },
-        dismissButton = {
+                    }
+                },
+                dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                        Text("Cancelar")
             }
         }
     )

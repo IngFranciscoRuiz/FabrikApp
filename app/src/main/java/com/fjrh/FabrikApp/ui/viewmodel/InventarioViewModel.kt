@@ -4,8 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fjrh.FabrikApp.data.local.ConfiguracionDataStore
 import com.fjrh.FabrikApp.data.local.repository.InventarioRepository
+import com.fjrh.FabrikApp.data.local.entity.IngredienteEntity
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.domain.util.UnitConversionUtil
+import com.fjrh.FabrikApp.domain.validator.Validators
+import com.fjrh.FabrikApp.domain.result.Result
+import com.fjrh.FabrikApp.domain.usecase.ErrorHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,7 +20,9 @@ import javax.inject.Inject
 class InventarioViewModel @Inject constructor(
     private val repository: InventarioRepository,
     private val configuracionDataStore: ConfiguracionDataStore,
-    private val formulaRepository: com.fjrh.FabrikApp.data.local.repository.FormulaRepository
+    private val formulaRepository: com.fjrh.FabrikApp.data.local.repository.FormulaRepository,
+    private val errorHandler: ErrorHandler,
+    private val syncManager: com.fjrh.FabrikApp.domain.usecase.SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -58,36 +64,54 @@ class InventarioViewModel @Inject constructor(
     }
 
     fun actualizarIngrediente(ingrediente: com.fjrh.FabrikApp.data.local.entity.IngredienteInventarioEntity) {
-        viewModelScope.launch {
+        viewModelScope.launch(errorHandler.coroutineExceptionHandler) {
             try {
                 _isLoading.value = true
                 _errorMessage.value = null
                 
-                // Validaciones básicas
-                if (ingrediente.nombre.trim().isBlank()) {
-                    _errorMessage.value = "El nombre del ingrediente no puede estar vacío"
-                    return@launch
+                val result = errorHandler.safeCall {
+                    // Validar ingrediente usando el validador
+                    val validationResult = Validators.validateIngrediente(ingrediente)
+                    validationResult.throwIfError()
+                    
+                    // 1. Actualizar el ingrediente en inventario
+                    repository.actualizarIngrediente(ingrediente)
+                    
+                    // 2. Actualizar costos en todas las fórmulas que usen este ingrediente
+                    actualizarCostosEnFormulas(ingrediente.nombre, ingrediente.costoPorUnidad)
+                    
+                    "Ingrediente actualizado correctamente"
                 }
                 
-                if (ingrediente.cantidadDisponible < 0) {
-                    _errorMessage.value = "La cantidad no puede ser negativa"
-                    return@launch
+                when (result) {
+                    is Result.Success -> {
+                        _successMessage.value = result.data
+                        errorHandler.logEvent("ingrediente_actualizado", mapOf("nombre" to ingrediente.nombre))
+                        
+                        // Sincronizar automáticamente con Firebase
+                        try {
+                            // Convertir IngredienteInventarioEntity a IngredienteEntity para sincronización
+                            val ingredienteEntity = IngredienteEntity(
+                                id = ingrediente.id,
+                                formulaId = 0, // No aplica para inventario
+                                nombre = ingrediente.nombre,
+                                unidad = ingrediente.unidad,
+                                cantidad = ingrediente.cantidadDisponible.toString(),
+                                costoPorUnidad = ingrediente.costoPorUnidad
+                            )
+                            syncManager.syncNewIngrediente(ingredienteEntity)
+                        } catch (e: Exception) {
+                            println("Error en sincronización automática: ${e.message}")
+                        }
+                    }
+                    is Result.Error -> {
+                        _errorMessage.value = errorHandler.processException(result.exception)
+                        errorHandler.logError(result.exception, "actualizarIngrediente")
+                    }
+                    is Result.Loading -> {
+                        // No debería ocurrir aquí
+                    }
                 }
-                
-                if (ingrediente.costoPorUnidad < 0) {
-                    _errorMessage.value = "El costo no puede ser negativo"
-                    return@launch
-                }
-
-                // 1. Actualizar el ingrediente en inventario
-                repository.actualizarIngrediente(ingrediente)
-                
-                // 2. Actualizar costos en todas las fórmulas que usen este ingrediente
-                actualizarCostosEnFormulas(ingrediente.nombre, ingrediente.costoPorUnidad)
-                
-                _successMessage.value = "Ingrediente actualizado correctamente"
-            } catch (e: Exception) {
-                _errorMessage.value = "Error al actualizar ingrediente: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
