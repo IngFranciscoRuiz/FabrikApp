@@ -197,6 +197,13 @@ class InventarioViewModel @Inject constructor(
                 
                 repository.insertarIngrediente(ingrediente)
                 _successMessage.value = "Ingrediente agregado correctamente"
+                
+                // Sincronizar automáticamente con Firebase
+                try {
+                    syncManager.syncNewIngredienteInventario(ingrediente)
+                } catch (e: Exception) {
+                    println("Error en sincronización automática: ${e.message}")
+                }
             } catch (e: Exception) {
                 _errorMessage.value = "Error al agregar ingrediente: ${e.message}"
             } finally {

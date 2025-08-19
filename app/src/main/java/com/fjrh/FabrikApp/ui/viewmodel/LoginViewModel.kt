@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.fjrh.FabrikApp.data.remote.FirebaseService
 import com.fjrh.FabrikApp.data.firebase.WorkspaceService
 import com.fjrh.FabrikApp.data.firebase.WorkspaceHolder
+import com.fjrh.FabrikApp.domain.usecase.SyncManager
 import com.fjrh.FabrikApp.domain.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val firebaseService: FirebaseService
+    private val firebaseService: FirebaseService,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -48,10 +50,18 @@ class LoginViewModel @Inject constructor(
                         println("LoginViewModel: Autenticación exitosa")
                         _successMessage.value = "¡Bienvenido de vuelta!"
                         
-                        // Después del login exitoso, sincronizar datos automáticamente
+                        // Después del login exitoso, sincronizar datos desde la nube y persistir en Room
                         try {
-                            println("LoginViewModel: Sincronizando datos después del login")
-                            syncUserData()
+                            println("LoginViewModel: Sincronizando datos (descarga a Room) después del login")
+                            val syncResult = withContext(Dispatchers.IO) { syncManager.syncFromCloud() }
+                            when (syncResult) {
+                                is Result.Success -> println("LoginViewModel: ✅ Sincronización desde la nube completada")
+                                is Result.Error -> {
+                                    println("LoginViewModel: ❌ Error sincronizando desde la nube: ${syncResult.exception.message}")
+                                    _errorMessage.value = syncResult.exception.message
+                                }
+                                is Result.Loading -> {}
+                            }
                         } catch (e: Exception) {
                             println("LoginViewModel: Error en sincronización post-login: ${e.message}")
                         }
@@ -94,10 +104,18 @@ class LoginViewModel @Inject constructor(
                         println("LoginViewModel: Registro exitoso")
                         _successMessage.value = "¡Cuenta creada exitosamente!"
                         
-                        // Después del registro exitoso, también sincronizar datos
+                        // Después del registro exitoso, descargar datos iniciales y guardarlos en Room
                         try {
-                            println("LoginViewModel: Sincronizando datos después del registro")
-                            syncUserData()
+                            println("LoginViewModel: Sincronizando datos (descarga a Room) después del registro")
+                            val syncResult = withContext(Dispatchers.IO) { syncManager.syncFromCloud() }
+                            when (syncResult) {
+                                is Result.Success -> println("LoginViewModel: ✅ Sincronización desde la nube completada")
+                                is Result.Error -> {
+                                    println("LoginViewModel: ❌ Error sincronizando desde la nube: ${syncResult.exception.message}")
+                                    _errorMessage.value = syncResult.exception.message
+                                }
+                                is Result.Loading -> {}
+                            }
                         } catch (e: Exception) {
                             println("LoginViewModel: Error en sincronización post-registro: ${e.message}")
                         }
@@ -238,8 +256,10 @@ class LoginViewModel @Inject constructor(
                     
                     println("LoginViewModel: ✅ Sincronización automática completada - Todos los datos compartidos descargados")
                     
-                    // TODO: Guardar en la base de datos local
-                    // Por ahora solo log para debugging
+                    // Guardar en la base de datos local usando SyncManager
+                    println("LoginViewModel: 💾 Persistiendo datos descargados en base de datos local...")
+                    syncManager.syncFromCloud()
+                    println("LoginViewModel: ✅ Datos persistidos exitosamente en base de datos local")
                 }
             } catch (e: Exception) {
                 println("LoginViewModel: ❌ Error en sincronización automática: ${e.message}")

@@ -287,8 +287,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargados ${ingredientes.size} ingredientes compartidos")
             Result.Success(ingredientes)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar ingredientes: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar ingredientes: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay ingredientes en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<IngredienteEntity>())
         }
     }
     
@@ -315,8 +316,38 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargadas ${formulas.size} fórmulas compartidas")
             Result.Success(formulas)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar fórmulas: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar fórmulas: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay fórmulas en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<FormulaEntity>())
+        }
+    }
+
+    /**
+     * Descargar fórmulas con sus ingredientes (datos compartidos)
+     */
+    suspend fun downloadFormulasConIngredientes(): Result<Pair<List<FormulaEntity>, List<IngredienteEntity>>> {
+        return try {
+            println("FirebaseService: Descargando fórmulas con ingredientes (datos compartidos)")
+            
+            // Descargar fórmulas
+            val formulasResult = downloadFormulas()
+            if (formulasResult is Result.Error) {
+                return formulasResult
+            }
+            val formulas = (formulasResult as Result.Success).data
+            
+            // Descargar ingredientes
+            val ingredientesResult = downloadIngredientes()
+            if (ingredientesResult is Result.Error) {
+                return ingredientesResult
+            }
+            val ingredientes = (ingredientesResult as Result.Success).data
+            
+            println("FirebaseService: ✅ Descargadas ${formulas.size} fórmulas con ${ingredientes.size} ingredientes")
+            Result.Success(Pair(formulas, ingredientes))
+        } catch (e: Exception) {
+            println("FirebaseService: ⚠️ Error al descargar fórmulas con ingredientes: ${e.message}")
+            Result.Success(Pair(emptyList<FormulaEntity>(), emptyList<IngredienteEntity>()))
         }
     }
     
@@ -347,8 +378,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargadas ${ventas.size} ventas compartidas")
             Result.Success(ventas)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar ventas: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar ventas: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay ventas en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<VentaEntity>())
         }
     }
     
@@ -380,8 +412,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargados ${ingredientes.size} ingredientes de inventario compartidos")
             Result.Success(ingredientes)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar ingredientes de inventario: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar ingredientes de inventario: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay ingredientes de inventario en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<IngredienteInventarioEntity>())
         }
     }
     
@@ -410,8 +443,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargado ${historial.size} historial de producción compartido")
             Result.Success(historial)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar historial: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar historial: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay historial en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<HistorialProduccionEntity>())
         }
     }
     
@@ -442,8 +476,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargado ${balance.size} balance compartido")
             Result.Success(balance)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar balance: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar balance: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay balance en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<BalanceEntity>())
         }
     }
     
@@ -472,8 +507,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargadas ${notas.size} notas compartidas")
             Result.Success(notas)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar notas: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar notas: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay notas en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<NotaEntity>())
         }
     }
     
@@ -505,8 +541,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargados ${pedidos.size} pedidos a proveedor compartidos")
             Result.Success(pedidos)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar pedidos a proveedor: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar pedidos a proveedor: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay pedidos a proveedor en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<PedidoProveedorEntity>())
         }
     }
     
@@ -535,8 +572,9 @@ class FirebaseService @Inject constructor() {
             println("FirebaseService: ✅ Descargadas ${unidades.size} unidades de medida compartidas")
             Result.Success(unidades)
         } catch (e: Exception) {
-            println("FirebaseService: ❌ Error al descargar unidades de medida: ${e.message}")
-            Result.Error(SubscriptionException("Error al descargar unidades de medida: ${e.message}"))
+            println("FirebaseService: ⚠️ No hay unidades de medida en Firebase (colección vacía o no existe): ${e.message}")
+            // Retornar lista vacía en lugar de error
+            Result.Success(emptyList<UnidadMedidaEntity>())
         }
     }
     

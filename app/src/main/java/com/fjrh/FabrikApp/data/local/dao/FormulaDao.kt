@@ -42,6 +42,9 @@ interface FormulaDao {
     @Query("DELETE FROM ingredientes WHERE formulaId = :formulaId")
     suspend fun deleteIngredientesByFormulaId(formulaId: Long)
 
+    @Query("SELECT * FROM ingredientes WHERE formulaId = :formulaId")
+    suspend fun getIngredientesByFormulaId(formulaId: Long): List<IngredienteEntity>
+
     // 🕒 HISTORIAL DE PRODUCCIÓN
     @Insert
     suspend fun insertarHistorial(historial: HistorialProduccionEntity)
