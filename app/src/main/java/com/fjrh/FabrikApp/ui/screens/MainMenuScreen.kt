@@ -229,40 +229,40 @@ fun MainMenuScreen(
             
             // Bottom navigation ahora está en GlobalLayout
             
-            // Indicador de toques para multiusuario
-            if (tapCount > 0 && tapCount < 3) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 100.dp)
-                        .padding(horizontal = 20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF2196F3)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.TouchApp,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Toques: $tapCount/3",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
+            // Indicador de toques para multiusuario - OCULTO (funcionalidad mantenida)
+            // if (tapCount > 0 && tapCount < 3) {
+            //     Card(
+            //         modifier = Modifier
+            //             .align(Alignment.TopCenter)
+            //             .padding(top = 100.dp)
+            //             .padding(horizontal = 20.dp),
+            //         colors = CardDefaults.cardColors(
+            //             containerColor = Color(0xFF2196F3)
+            //         ),
+            //         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            //     ) {
+            //         Row(
+            //             modifier = Modifier
+            //                 .fillMaxWidth()
+            //                 .padding(16.dp),
+            //             verticalAlignment = Alignment.CenterVertically
+            //         ) {
+            //             Icon(
+            //                 imageVector = Icons.Default.TouchApp,
+            //                 contentDescription = null,
+            //                 tint = Color.White,
+            //                 modifier = Modifier.size(24.dp)
+            //         )
+            //             Spacer(modifier = Modifier.width(12.dp))
+            //             Text(
+            //                 text = "Toques: $tapCount/3",
+            //                 style = MaterialTheme.typography.bodyLarge,
+            //                 color = Color.White,
+            //                 fontWeight = FontWeight.Bold
+            //             )
+            //         }
+            //     }
+            // }
             
             // Mensaje de confirmación de multiusuario
             if (showMultiUserMessage) {

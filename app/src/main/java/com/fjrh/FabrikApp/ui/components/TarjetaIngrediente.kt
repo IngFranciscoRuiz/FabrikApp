@@ -35,6 +35,11 @@ fun TarjetaIngrediente(
     var isEditing by remember { mutableStateOf(false) }
     var editedIngrediente by remember { mutableStateOf(ingrediente) }
     
+    // Actualizar editedIngrediente cuando cambie el ingrediente prop
+    LaunchedEffect(ingrediente) {
+        editedIngrediente = ingrediente
+    }
+    
     val stockAlertService = remember { StockAlertService() }
     
     val colorSemaforo = if (configuracion != null) {
