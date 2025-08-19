@@ -52,17 +52,7 @@ fun ProduccionScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Escuchar evento de éxito al producir lote
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is FormulaViewModel.UiEvent.LoteProducido -> {
-                    snackbarHostState.showSnackbar("¡Lote producido exitosamente!")
-                }
-                else -> {}
-            }
-        }
-    }
+    // Removido LaunchedEffect que causaba snackbar duplicado
 
     Box(
         modifier = Modifier
@@ -180,7 +170,7 @@ fun ProduccionScreen(
                                 )
                                 viewModel.insertarHistorial(historial)
                                 
-                                snackbarHostState.showSnackbar("¡Lote producido exitosamente!")
+                                // Removido snackbar duplicado - solo se muestra en el botón fijo
                             }
                         }
                     )
