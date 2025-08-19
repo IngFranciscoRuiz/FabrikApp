@@ -35,60 +35,45 @@ class MainMenuViewModel @Inject constructor(
 
     private fun cargarMetricas() {
         viewModelScope.launch {
-            // Cargar ventas del día actual
-            val hoy = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-            
-            val manana = hoy + (24 * 60 * 60 * 1000)
-            
-            repository.getVentas().collect { ventas ->
+            // Combinar todos los Flows en una sola coroutine para evitar cancelaciones
+            combine(
+                repository.getVentas(),
+                repository.getStockProductos(),
+                repository.getHistorial(),
+                repository.getPedidosProveedor(),
+                configuracionDataStore.configuracion
+            ) { ventas, stockProductos, historial, pedidos, config ->
+                // Calcular fecha de hoy
+                val hoy = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.timeInMillis
+                val manana = hoy + (24 * 60 * 60 * 1000)
+                
+                // Calcular ventas del día
                 val ventasHoy = ventas.filter { venta ->
                     venta.fecha >= hoy && venta.fecha < manana
                 }.sumOf { it.litrosVendidos * it.precioPorLitro }
-                _ventasHoy.value = ventasHoy
-            }
-        }
-
-        viewModelScope.launch {
-            // Cargar stock bajo usando configuración real
-            combine(
-                repository.getStockProductos(),
-                configuracionDataStore.configuracion
-            ) { stockProductos, config ->
+                
+                // Calcular stock bajo
                 val stockBajo = stockProductos.count { it.stock < config.stockBajoProductos }
-                _stockBajo.value = stockBajo
-            }.collect()
-        }
-
-        viewModelScope.launch {
-            // Cargar producción del día actual
-            val hoy = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-            
-            val manana = hoy + (24 * 60 * 60 * 1000)
-            
-            repository.getHistorial().collect { historial ->
+                
+                // Calcular producción del día
                 val produccionHoy = historial.filter { produccion ->
                     produccion.fecha >= hoy && produccion.fecha < manana
                 }.sumOf { it.litrosProducidos.toDouble() }
-                _produccionHoy.value = produccionHoy
-            }
-        }
-
-        viewModelScope.launch {
-            // Cargar pedidos pendientes
-            repository.getPedidosProveedor().collect { pedidos ->
+                
+                // Calcular pedidos pendientes
                 val pedidosPendientes = pedidos.count { it.estado == "PENDIENTE" }
+                
+                // Actualizar todos los valores de una vez
+                _ventasHoy.value = ventasHoy
+                _stockBajo.value = stockBajo
+                _produccionHoy.value = produccionHoy
                 _pedidosPendientes.value = pedidosPendientes
-            }
+            }.collect()
         }
     }
 

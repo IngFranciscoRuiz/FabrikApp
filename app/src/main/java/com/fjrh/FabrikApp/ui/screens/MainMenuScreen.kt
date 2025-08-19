@@ -45,8 +45,9 @@ fun MainMenuScreen(
     navController: NavController,
     subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
-    // Inyectar MultiUserViewModel
+    // Inyectar ViewModels
     val multiUserViewModel: MultiUserViewModel = hiltViewModel()
+    val mainMenuViewModel: MainMenuViewModel = hiltViewModel()
     // Inyectar FirebaseService
     val firebaseService: com.fjrh.FabrikApp.data.remote.FirebaseService = remember { 
         com.fjrh.FabrikApp.data.remote.FirebaseService() 
@@ -222,7 +223,7 @@ fun MainMenuScreen(
                         )
                     }
                 }
-                item { MainKPIsSection(hiltViewModel()) }
+                item { MainKPIsSection(mainMenuViewModel) }
                 item { MainQuickAccessSection(navController) }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }

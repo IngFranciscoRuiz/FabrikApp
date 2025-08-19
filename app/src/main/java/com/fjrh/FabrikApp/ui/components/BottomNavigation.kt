@@ -46,7 +46,19 @@ fun FabrikBottomNavigation(
                 label = "Inicio",
                 route = "menu",
                 currentRoute = currentRoute,
-                onClick = { navController.navigate("menu") }
+                onClick = { 
+                    if (currentRoute == "menu") {
+                        // Si ya estamos en menu, no hacer nada
+                    } else {
+                        // Navegar al menú principal
+                        navController.navigate("menu") {
+                            // Evitar múltiples copias de la misma pantalla
+                            launchSingleTop = true
+                            // Restaurar estado cuando se reselecciona
+                            restoreState = true
+                        }
+                    }
+                }
             )
             
             BottomNavItem(
