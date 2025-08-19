@@ -79,10 +79,10 @@ fun AgregarIngredienteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
-                .padding(top = 60.dp)
-                .padding(bottom = 100.dp)
+                .padding(top = 40.dp)
+                .padding(bottom = 16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Header moderno
             Row(
@@ -117,7 +117,7 @@ fun AgregarIngredienteScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Descripción
             Card(
@@ -127,7 +127,7 @@ fun AgregarIngredienteScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -137,7 +137,7 @@ fun AgregarIngredienteScreen(
                         fontWeight = FontWeight.Bold
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     
                     Text(
                         text = "Agrega un nuevo ingrediente al inventario",
@@ -176,8 +176,8 @@ fun AgregarIngredienteScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Campo Nombre
                     ModernFormField(

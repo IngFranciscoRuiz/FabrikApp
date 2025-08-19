@@ -60,7 +60,7 @@ fun VentasScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
                 .padding(top = 60.dp)
-                .padding(bottom = 100.dp),
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header moderno
@@ -194,7 +194,7 @@ fun VentasScreen(
             onClick = { showAddDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 100.dp, end = 20.dp),
+                .padding(bottom = 150.dp, end = 20.dp),
             containerColor = Color(0xFF4CAF50),
             contentColor = Color.White
         ) {

@@ -48,7 +48,7 @@ fun DashboardScreen(
         // Quick Access
         QuickAccessSection(navController)
         
-        Spacer(modifier = Modifier.height(100.dp)) // Space for bottom navigation
+                        Spacer(modifier = Modifier.height(16.dp)) // Reduced space for bottom nav
     }
 }
 

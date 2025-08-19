@@ -195,7 +195,7 @@ fun PedidosProveedorScreen(
             onClick = { showAddDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 100.dp, end = 20.dp),
+                .padding(bottom = 150.dp, end = 20.dp),
             containerColor = Color(0xFF1976D2),
             contentColor = Color.White
         ) {

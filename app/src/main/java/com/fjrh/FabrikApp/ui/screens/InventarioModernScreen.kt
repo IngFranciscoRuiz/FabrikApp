@@ -52,7 +52,7 @@ fun InventarioModernScreen(
                 }
                 
                 item {
-                    Spacer(modifier = Modifier.height(100.dp)) // Space for FAB
+                    Spacer(modifier = Modifier.height(16.dp)) // Reduced space for bottom nav
                 }
             }
         }
@@ -62,7 +62,8 @@ fun InventarioModernScreen(
             onClick = { navController.navigate("agregar_ingrediente") },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp),
+                .padding(24.dp)
+                .padding(bottom = 80.dp), // Extra padding for bottom nav
             containerColor = FabrikAppBlue,
             shape = CircleShape
         ) {

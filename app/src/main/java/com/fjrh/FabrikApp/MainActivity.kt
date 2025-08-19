@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.fjrh.FabrikApp.ui.navigation.AppNavigation
 import com.fjrh.FabrikApp.ui.theme.FabrikAppThemeWithConfig
 import com.fjrh.FabrikApp.ui.viewmodel.ThemeViewModel
+import com.fjrh.FabrikApp.ui.components.GlobalLayout
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -22,7 +23,9 @@ class MainActivity : ComponentActivity() {
             
             FabrikAppThemeWithConfig(isDarkTheme = isDarkTheme) {
                 val navController = rememberNavController()
-                AppNavigation(navController = navController)
+                GlobalLayout(navController = navController) {
+                    AppNavigation(navController = navController)
+                }
             }
         }
     }

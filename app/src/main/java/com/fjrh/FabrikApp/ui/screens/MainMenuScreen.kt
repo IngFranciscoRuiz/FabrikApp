@@ -97,7 +97,7 @@ fun MainMenuScreen(
                     .fillMaxSize()
                     .padding(horizontal = 20.dp)
                     .padding(top = 40.dp)
-                    .padding(bottom = 100.dp),
+                    .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item { 
@@ -227,13 +227,7 @@ fun MainMenuScreen(
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
             
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-            ) {
-                FabrikBottomNavigation(navController)
-            }
+            // Bottom navigation ahora está en GlobalLayout
             
             // Indicador de toques para multiusuario
             if (tapCount > 0 && tapCount < 3) {
