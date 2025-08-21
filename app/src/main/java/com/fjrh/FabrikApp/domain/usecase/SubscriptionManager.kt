@@ -15,7 +15,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class SubscriptionManager @Inject constructor(
-    private val context: Context
+    private val context: Context,
+    private val billingService: com.fjrh.FabrikApp.data.billing.BillingService
 ) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
         SUBSCRIPTION_PREFS, Context.MODE_PRIVATE
@@ -139,8 +140,11 @@ class SubscriptionManager @Inject constructor(
     fun isFeatureAvailable(featureName: String): Boolean {
         val info = getCurrentSubscriptionInfo()
         
-        // Si es premium, todo está disponible
-        if (info.isPremium) return true
+        // Verificar estado real de suscripción en Google Play
+        val isPremiumActive = billingService.isPremiumActive.value
+        
+        // Si Google Play confirma que es premium, todo está disponible
+        if (isPremiumActive) return true
         
         // Si está bloqueado, nada está disponible
         if (info.isBlocked) return false
@@ -150,7 +154,11 @@ class SubscriptionManager @Inject constructor(
             return !BLOCKED_FEATURES.contains(featureName)
         }
         
-        // Durante el trial, todo está disponible
+        // Durante el trial, todo está disponible excepto backup
+        if (featureName == "backup") {
+            return false
+        }
+        
         return true
     }
     

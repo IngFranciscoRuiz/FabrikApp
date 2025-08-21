@@ -37,7 +37,7 @@ import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
-import com.fjrh.FabrikApp.ui.components.SubscriptionGuard
+import com.fjrh.FabrikApp.ui.components.SubscriptionGuardWithBilling
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
 import java.io.File
 
@@ -48,6 +48,8 @@ fun ConfiguracionScreen(
     viewModel: ConfiguracionViewModel = hiltViewModel(),
     subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
+    // Obtener BillingService a través del SubscriptionViewModel
+    val billingService = subscriptionViewModel.getBillingService()
 
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
@@ -338,8 +340,9 @@ fun ConfiguracionScreen(
                 icon = Icons.Default.Storage,
                 color = Color(0xFFFF5722)
             ) {
-                SubscriptionGuard(
+                SubscriptionGuardWithBilling(
                     subscriptionInfo = subscriptionInfo,
+                    billingService = billingService,
                     featureName = "backup",
                     onSubscribe = { navController.navigate("subscription") }
                 ) {

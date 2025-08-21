@@ -81,8 +81,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSubscriptionManager(@ApplicationContext context: Context): SubscriptionManager {
-        return SubscriptionManager(context)
+    fun provideSubscriptionManager(
+        @ApplicationContext context: Context,
+        billingService: BillingService
+    ): SubscriptionManager {
+        return SubscriptionManager(context, billingService)
     }
     
     @Provides

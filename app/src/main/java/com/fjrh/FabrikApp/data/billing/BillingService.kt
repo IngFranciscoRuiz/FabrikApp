@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.emptyList
-//import com.fjrh.FabrikApp.BuildConfig
 
 @Singleton
 class BillingService @Inject constructor(
@@ -25,6 +24,17 @@ class BillingService @Inject constructor(
     private val _purchaseStatus = MutableStateFlow<PurchaseStatus?>(null)
     val purchaseStatus: StateFlow<PurchaseStatus?> = _purchaseStatus.asStateFlow()
     
+    // Nuevos StateFlows para offerTokens
+    private val _monthlyOfferToken = MutableStateFlow<String?>(null)
+    val monthlyOfferToken: StateFlow<String?> = _monthlyOfferToken.asStateFlow()
+    
+    private val _yearlyOfferToken = MutableStateFlow<String?>(null)
+    val yearlyOfferToken: StateFlow<String?> = _yearlyOfferToken.asStateFlow()
+    
+    // StateFlow para estado real de suscripción
+    private val _isPremiumActive = MutableStateFlow(false)
+    val isPremiumActive: StateFlow<Boolean> = _isPremiumActive.asStateFlow()
+    
     sealed class PurchaseStatus {
         object Success : PurchaseStatus()
         object Pending : PurchaseStatus()
@@ -32,9 +42,9 @@ class BillingService @Inject constructor(
     }
     
     companion object {
-        const val SUBSCRIPTION_ID = "fabrikapp_premium"
-        const val SUBSCRIPTION_MONTHLY = "premium-mensual"
-        const val SUBSCRIPTION_YEARLY = "premium-anual"
+        const val PRODUCT_ID = "fabrikapp_premium"
+        const val BASE_PLAN_MONTHLY = "premium-mensual"
+        const val BASE_PLAN_YEARLY = "premium-anual"
     }
     
     fun initializeBilling() {
@@ -57,6 +67,9 @@ class BillingService @Inject constructor(
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     _isConnected.value = true
+                    // Cargar productos y verificar suscripción al conectar
+                    loadProductDetails()
+                    refreshSubscriptionStatus()
                 } else {
                     _isConnected.value = false
                 }
@@ -68,15 +81,13 @@ class BillingService @Inject constructor(
         })
     }
     
-    fun purchaseSubscription(activity: Activity, subscriptionId: String) {
-        if (!_isConnected.value) {
-            _purchaseStatus.value = PurchaseStatus.Error("Billing no está conectado")
-            return
-        }
+    // Nueva función para cargar detalles del producto y obtener offerTokens
+    private fun loadProductDetails() {
+        if (!_isConnected.value) return
         
         val productDetailsParamsList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(subscriptionId)
+                .setProductId(PRODUCT_ID)
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
         )
@@ -89,12 +100,76 @@ class BillingService @Inject constructor(
             if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val productDetails = productDetailsList.firstOrNull()
                 if (productDetails != null) {
-                    val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
-                    if (offerToken != null) {
-                        launchBillingFlow(activity, productDetails, offerToken)
-                    } else {
-                        _purchaseStatus.value = PurchaseStatus.Error("No se encontró oferta válida")
-                    }
+                    val offers = productDetails.subscriptionOfferDetails.orEmpty()
+                    
+                    // Buscar ofertas por basePlanId
+                    val monthlyOffer = offers.find { it.basePlanId == BASE_PLAN_MONTHLY }
+                    val yearlyOffer = offers.find { it.basePlanId == BASE_PLAN_YEARLY }
+                    
+                    _monthlyOfferToken.value = monthlyOffer?.offerToken
+                    _yearlyOfferToken.value = yearlyOffer?.offerToken
+                }
+            }
+        }
+    }
+    
+    // Nueva función para verificar estado real de suscripción
+    fun refreshSubscriptionStatus() {
+        if (!_isConnected.value) return
+        
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+        
+        billingClient?.queryPurchasesAsync(params) { billingResult, purchases ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                // queryPurchasesAsync solo devuelve compras ACTIVAS
+                val premiumActive = purchases.any { purchase ->
+                    purchase.products.contains(PRODUCT_ID) &&
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                }
+                _isPremiumActive.value = premiumActive
+            } else {
+                _isPremiumActive.value = false
+            }
+        }
+    }
+    
+    // Función actualizada para comprar suscripción específica
+    fun purchaseSubscription(activity: Activity, isMonthly: Boolean) {
+        if (!_isConnected.value) {
+            _purchaseStatus.value = PurchaseStatus.Error("Billing no está conectado")
+            return
+        }
+        
+        val offerToken = if (isMonthly) {
+            _monthlyOfferToken.value
+        } else {
+            _yearlyOfferToken.value
+        }
+        
+        if (offerToken == null) {
+            _purchaseStatus.value = PurchaseStatus.Error("Oferta no disponible")
+            return
+        }
+        
+        // Obtener ProductDetails para usar en el flujo de compra
+        val productDetailsParamsList = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_ID)
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+        )
+        
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(productDetailsParamsList)
+            .build()
+        
+        billingClient?.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val productDetails = productDetailsList.firstOrNull()
+                if (productDetails != null) {
+                    launchBillingFlow(activity, productDetails, offerToken)
                 } else {
                     _purchaseStatus.value = PurchaseStatus.Error("Producto no encontrado")
                 }
@@ -133,12 +208,15 @@ class BillingService @Inject constructor(
                 billingClient?.acknowledgePurchase(acknowledgePurchaseParams) { billingResult ->
                     if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                         _purchaseStatus.value = PurchaseStatus.Success
+                        // Refrescar estado de suscripción después de compra exitosa
+                        refreshSubscriptionStatus()
                     } else {
                         _purchaseStatus.value = PurchaseStatus.Error("Error al confirmar compra")
                     }
                 }
             } else {
                 _purchaseStatus.value = PurchaseStatus.Success
+                refreshSubscriptionStatus()
             }
         } else if (purchase.purchaseState == Purchase.PurchaseState.PENDING) {
             _purchaseStatus.value = PurchaseStatus.Pending

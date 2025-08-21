@@ -113,16 +113,20 @@ class SubscriptionViewModel @Inject constructor(
     }
     
     fun purchaseMonthlySubscription(activity: android.app.Activity) {
-        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_ID)
+        billingService.purchaseSubscription(activity, true)
     }
     
     fun purchaseYearlySubscription(activity: android.app.Activity) {
-        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_ID)
+        billingService.purchaseSubscription(activity, false)
     }
     
     fun getBillingStatus() = billingService.purchaseStatus
     
     fun getBillingConnectionStatus() = billingService.isConnected
+    
+    fun getPremiumStatus() = billingService.isPremiumActive
+    
+    fun getBillingService() = billingService
     
     // Funciones de testing - ELIMINAR EN PRODUCCIÓN
     fun simulateTrialDays(daysRemaining: Int) {

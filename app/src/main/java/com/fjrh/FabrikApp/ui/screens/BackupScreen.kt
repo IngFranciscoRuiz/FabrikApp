@@ -26,7 +26,7 @@ import com.fjrh.FabrikApp.data.local.SAFService
 import com.fjrh.FabrikApp.ui.viewmodel.BackupUiState
 import com.fjrh.FabrikApp.ui.viewmodel.BackupViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
-import com.fjrh.FabrikApp.ui.components.SubscriptionGuard
+import com.fjrh.FabrikApp.ui.components.SubscriptionGuardWithBilling
 import kotlinx.coroutines.launch
 import android.app.Activity
 
@@ -36,6 +36,8 @@ fun BackupScreen(
     viewModel: BackupViewModel = hiltViewModel(),
     subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
+    // Obtener BillingService a través del SubscriptionViewModel
+    val billingService = subscriptionViewModel.getBillingService()
     val context = LocalContext.current
     val activity = context as? FragmentActivity
     val scope = rememberCoroutineScope()
@@ -78,8 +80,9 @@ fun BackupScreen(
         viewModel.clearState()
     }
     
-    SubscriptionGuard(
+    SubscriptionGuardWithBilling(
         subscriptionInfo = subscriptionInfo,
+        billingService = billingService,
         featureName = "backup",
         onSubscribe = { navController.navigate("subscription") }
     ) {

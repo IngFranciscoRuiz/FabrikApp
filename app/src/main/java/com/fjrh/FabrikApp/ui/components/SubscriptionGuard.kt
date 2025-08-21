@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.domain.model.SubscriptionStatus
 import com.fjrh.FabrikApp.domain.usecase.SubscriptionManager
+import com.fjrh.FabrikApp.data.billing.BillingService
 
 /**
  * Componente que protege funcionalidades según el estado de suscripción
@@ -45,6 +46,43 @@ fun SubscriptionGuard(
             }
         }
     } ?: false
+
+    if (isFeatureAvailable) {
+        content()
+    } else {
+        FeatureLockedOverlay(
+            subscriptionInfo = subscriptionInfo,
+            featureName = featureName,
+            onSubscribe = onSubscribe
+        )
+    }
+}
+
+/**
+ * Componente que protege funcionalidades usando verificación real de Google Play
+ */
+@Composable
+fun SubscriptionGuardWithBilling(
+    subscriptionInfo: SubscriptionInfo?,
+    billingService: BillingService,
+    featureName: String,
+    onSubscribe: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val isPremiumActive by billingService.isPremiumActive.collectAsState()
+    
+    val isFeatureAvailable = when {
+        isPremiumActive -> true // Google Play confirma que es premium
+        subscriptionInfo?.isBlocked == true -> false
+        subscriptionInfo?.isTrialExpired() == true -> {
+            // Si el trial expiró, bloquear TODO excepto la pantalla de suscripción
+            featureName == "subscription_screen"
+        }
+        else -> {
+            // Durante el trial, todo está disponible EXCEPTO backup
+            featureName != "backup"
+        }
+    }
 
     if (isFeatureAvailable) {
         content()
