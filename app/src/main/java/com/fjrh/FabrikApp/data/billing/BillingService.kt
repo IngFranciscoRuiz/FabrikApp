@@ -32,8 +32,9 @@ class BillingService @Inject constructor(
     }
     
     companion object {
-        const val SUBSCRIPTION_MONTHLY = "fabrikapp_premium_monthly"
-        const val SUBSCRIPTION_YEARLY = "fabrikapp_premium_yearly"
+        const val SUBSCRIPTION_ID = "fabrikapp_premium"
+        const val SUBSCRIPTION_MONTHLY = "premium-mensual"
+        const val SUBSCRIPTION_YEARLY = "premium-anual"
     }
     
     fun initializeBilling() {
@@ -68,20 +69,11 @@ class BillingService @Inject constructor(
     }
     
     fun purchaseSubscription(activity: Activity, subscriptionId: String) {
-        // Por ahora, simular compra exitosa para testing
-        // En producción, esto se manejará con Google Play Billing real
-        _purchaseStatus.value = PurchaseStatus.Success
-        return
-        
-        // Código real de Google Play Billing (comentado hasta que tengas productos configurados)
-        /*
         if (!_isConnected.value) {
             _purchaseStatus.value = PurchaseStatus.Error("Billing no está conectado")
             return
         }
-        */
         
-        /*
         val productDetailsParamsList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(subscriptionId)
@@ -110,7 +102,6 @@ class BillingService @Inject constructor(
                 _purchaseStatus.value = PurchaseStatus.Error("Error al consultar productos: ${billingResult.debugMessage}")
             }
         }
-        */
     }
     
     private fun launchBillingFlow(

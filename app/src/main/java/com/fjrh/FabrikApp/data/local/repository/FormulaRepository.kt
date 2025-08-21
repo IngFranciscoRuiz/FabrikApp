@@ -82,6 +82,10 @@ class FormulaRepository @Inject constructor(
         formulaDao.actualizarIngredienteInventario(ingrediente)
     }
 
+    suspend fun insertarIngredienteInventario(ingrediente: IngredienteInventarioEntity) {
+        formulaDao.insertarIngredienteInventario(ingrediente)
+    }
+
     // VENTAS
     fun getVentas(): Flow<List<VentaEntity>> {
         return formulaDao.getVentas()

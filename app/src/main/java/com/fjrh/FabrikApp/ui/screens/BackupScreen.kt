@@ -25,13 +25,16 @@ import androidx.navigation.NavController
 import com.fjrh.FabrikApp.data.local.SAFService
 import com.fjrh.FabrikApp.ui.viewmodel.BackupUiState
 import com.fjrh.FabrikApp.ui.viewmodel.BackupViewModel
+import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
+import com.fjrh.FabrikApp.ui.components.SubscriptionGuard
 import kotlinx.coroutines.launch
 import android.app.Activity
 
 @Composable
 fun BackupScreen(
     navController: NavController,
-    viewModel: BackupViewModel = hiltViewModel()
+    viewModel: BackupViewModel = hiltViewModel(),
+    subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
@@ -39,6 +42,7 @@ fun BackupScreen(
     
     val uiState by viewModel.uiState.collectAsState()
     val backupInfo by viewModel.backupInfo.collectAsState()
+    val subscriptionInfo by subscriptionViewModel.subscriptionInfo.collectAsState()
     
     var selectedBackupUri by remember { mutableStateOf<Uri?>(null) }
     
@@ -69,14 +73,21 @@ fun BackupScreen(
     
     // Limpiar estado cuando se sale de la pantalla
     LaunchedEffect(Unit) {
+        // Inicializar trial
+        subscriptionViewModel.initializeTrial()
         viewModel.clearState()
     }
     
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+    SubscriptionGuard(
+        subscriptionInfo = subscriptionInfo,
+        featureName = "backup",
+        onSubscribe = { navController.navigate("subscription") }
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -447,6 +458,7 @@ fun BackupScreen(
                 
                 else -> { /* Estado idle, no mostrar nada */ }
             }
+        }
         }
     }
 }

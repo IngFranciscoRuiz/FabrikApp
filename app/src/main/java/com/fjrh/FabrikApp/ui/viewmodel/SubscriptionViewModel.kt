@@ -40,18 +40,26 @@ class SubscriptionViewModel @Inject constructor(
             _isLoading.value = true
             _errorMessage.value = null
 
-            val result = subscriptionManager.initializeTrial()
-            when (result) {
-                is Result.Success -> {
-                    _subscriptionInfo.value = result.data
-                    _successMessage.value = "Trial inicializado correctamente"
+            // Solo inicializar si no existe un trial previo
+            val currentInfo = subscriptionManager.getCurrentSubscriptionInfo()
+            if (currentInfo.trialStartDate == 0L) {
+                // No hay trial previo, crear uno nuevo
+                val result = subscriptionManager.initializeTrial()
+                when (result) {
+                    is Result.Success -> {
+                        _subscriptionInfo.value = result.data
+                        _successMessage.value = "Trial inicializado correctamente"
+                    }
+                    is Result.Error -> {
+                        _errorMessage.value = result.exception.message
+                    }
+                    is Result.Loading -> {
+                        // No debería ocurrir aquí
+                    }
                 }
-                is Result.Error -> {
-                    _errorMessage.value = result.exception.message
-                }
-                is Result.Loading -> {
-                    // No debería ocurrir aquí
-                }
+            } else {
+                // Ya existe un trial, solo cargar la información actual
+                _subscriptionInfo.value = currentInfo
             }
             _isLoading.value = false
         }
@@ -105,11 +113,11 @@ class SubscriptionViewModel @Inject constructor(
     }
     
     fun purchaseMonthlySubscription(activity: android.app.Activity) {
-        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_MONTHLY)
+        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_ID)
     }
     
     fun purchaseYearlySubscription(activity: android.app.Activity) {
-        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_YEARLY)
+        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_ID)
     }
     
     fun getBillingStatus() = billingService.purchaseStatus

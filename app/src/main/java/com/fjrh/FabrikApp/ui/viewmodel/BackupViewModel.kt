@@ -19,6 +19,10 @@ class BackupViewModel @Inject constructor(
     private val safService: SAFService
 ) : ViewModel() {
     
+    init {
+        println("DEBUG: BackupViewModel inicializado")
+    }
+    
     private val _uiState = MutableStateFlow<BackupUiState>(BackupUiState.Idle)
     val uiState: StateFlow<BackupUiState> = _uiState.asStateFlow()
     
@@ -29,12 +33,18 @@ class BackupViewModel @Inject constructor(
      * Exporta todos los datos de la app
      */
     fun exportBackup(uri: android.net.Uri) {
+        println("DEBUG: exportBackup iniciado con URI: $uri")
         viewModelScope.launch {
             _uiState.value = BackupUiState.Loading("Preparando respaldo...")
             
             try {
                 // Recopilar todos los datos
                 val ingredientes = repository.getIngredientesInventario().first()
+                println("DEBUG: Ingredientes en inventario encontrados: ${ingredientes.size}")
+                ingredientes.forEach { ingrediente ->
+                    println("DEBUG: Ingrediente: ${ingrediente.nombre} - ${ingrediente.cantidadDisponible} ${ingrediente.unidad}")
+                }
+                
                 val formulas = repository.obtenerFormulasConIngredientes().first()
                 val ventas = repository.getVentas().first()
                 val balance = repository.getBalance().first()
@@ -53,6 +63,10 @@ class BackupViewModel @Inject constructor(
                     historial = historial,
                     unidades = unidades
                 )
+                
+                println("DEBUG: BackupData creado con ${backupData.ingredientes.size} ingredientes")
+                println("DEBUG: BackupData creado con ${backupData.formulas.size} fórmulas")
+                println("DEBUG: BackupData creado con ${backupData.ventas.size} ventas")
                 
                 _uiState.value = BackupUiState.Loading("Exportando datos...")
                 
@@ -119,9 +133,17 @@ class BackupViewModel @Inject constructor(
      */
     private suspend fun importBackupData(backupData: SAFService.BackupData) {
         try {
+            println("DEBUG: Iniciando importación de backup")
+            println("DEBUG: BackupData contiene ${backupData.ingredientes.size} ingredientes")
+            backupData.ingredientes.forEach { ingrediente ->
+                println("DEBUG: Importando ingrediente: ${ingrediente.nombre} - ${ingrediente.cantidadDisponible} ${ingrediente.unidad}")
+            }
+            
             _uiState.value = BackupUiState.Loading("Restaurando ingredientes...")
             backupData.ingredientes.forEach { ingrediente ->
-                repository.actualizarIngredienteInventario(ingrediente)
+                println("DEBUG: Llamando a insertarIngredienteInventario para: ${ingrediente.nombre}")
+                repository.insertarIngredienteInventario(ingrediente)
+                println("DEBUG: Ingrediente ${ingrediente.nombre} insertado exitosamente")
             }
             
             _uiState.value = BackupUiState.Loading("Restaurando fórmulas...")

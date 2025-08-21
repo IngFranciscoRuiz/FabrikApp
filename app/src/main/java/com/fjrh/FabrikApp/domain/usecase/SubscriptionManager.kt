@@ -125,8 +125,9 @@ class SubscriptionManager @Inject constructor(
             trialEndDate = trialEnd,
             isPremium = isPremium,
             daysRemaining = if (status == SubscriptionStatus.Trial) {
-                val remaining = trialEnd - System.currentTimeMillis()
-                (remaining / SubscriptionInfo.MILLISECONDS_PER_DAY).toInt().coerceAtLeast(0)
+                // Calcular días restantes basándose en la fecha de inicio del trial
+                val daysElapsed = (System.currentTimeMillis() - trialStart) / SubscriptionInfo.MILLISECONDS_PER_DAY
+                (SubscriptionInfo.TRIAL_DURATION_DAYS - daysElapsed).toInt().coerceAtLeast(0)
             } else 0,
             isBlocked = isBlocked
         )

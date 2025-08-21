@@ -117,7 +117,11 @@ class SAFService(private val context: Context) {
                 inputStream.bufferedReader().readText()
             } ?: throw IOException("No se pudo leer el archivo")
             
+            println("DEBUG: JSON leído del archivo: ${json.take(500)}...")
+            
             val backup = Gson().fromJson(json, AppBackup::class.java)
+            println("DEBUG: Backup parseado - ingredientes: ${backup.data.ingredientes.size}")
+            
             Result.success(backup.data)
         } catch (e: Exception) {
             Result.failure(e)
@@ -134,6 +138,8 @@ class SAFService(private val context: Context) {
             } ?: throw IOException("No se pudo leer el archivo")
             
             val backup = Gson().fromJson(json, AppBackup::class.java)
+            println("DEBUG: Validando backup - ingredientes: ${backup.data.ingredientes.size}")
+            
             val isValid = backup.data.ingredientes.isNotEmpty() || 
                          backup.data.formulas.isNotEmpty() ||
                          backup.data.ventas.isNotEmpty() ||
@@ -142,6 +148,8 @@ class SAFService(private val context: Context) {
                          backup.data.pedidos.isNotEmpty() ||
                          backup.data.historial.isNotEmpty() ||
                          backup.data.unidades.isNotEmpty()
+            
+            println("DEBUG: Backup válido: $isValid")
             
             Result.success(isValid)
         } catch (e: Exception) {

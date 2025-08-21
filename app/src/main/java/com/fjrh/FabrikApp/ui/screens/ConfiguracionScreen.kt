@@ -34,7 +34,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
+import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
+import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
+import com.fjrh.FabrikApp.ui.components.SubscriptionGuard
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
 import java.io.File
 
@@ -42,7 +45,8 @@ import java.io.File
 @Composable
 fun ConfiguracionScreen(
     navController: NavController,
-    viewModel: ConfiguracionViewModel = hiltViewModel()
+    viewModel: ConfiguracionViewModel = hiltViewModel(),
+    subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
 ) {
 
     var stockAltoProductos by remember { mutableStateOf("") }
@@ -67,16 +71,22 @@ fun ConfiguracionScreen(
     val mensaje by viewModel.mensaje.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val archivosBackup by viewModel.archivosBackup.collectAsState()
+    
+    // Información de suscripción
+    val subscriptionInfo by subscriptionViewModel.subscriptionInfo.collectAsState()
 
-    // Cargar configuración inicial
+        // Cargar configuración inicial
     LaunchedEffect(Unit) {
-                        viewModel.configuracion.collect { config ->
-                    stockAltoProductos = config.stockAltoProductos.toString()
-                    stockMedioProductos = config.stockMedioProductos.toString()
-                    stockBajoProductos = config.stockBajoProductos.toString()
-                    stockAltoInsumos = config.stockAltoInsumos.toString()
-                    stockMedioInsumos = config.stockMedioInsumos.toString()
-                    stockBajoInsumos = config.stockBajoInsumos.toString()
+        // Inicializar trial
+        subscriptionViewModel.initializeTrial()
+        
+        viewModel.configuracion.collect { config ->
+            stockAltoProductos = config.stockAltoProductos.toString()
+            stockMedioProductos = config.stockMedioProductos.toString()
+            stockBajoProductos = config.stockBajoProductos.toString()
+            stockAltoInsumos = config.stockAltoInsumos.toString()
+            stockMedioInsumos = config.stockMedioInsumos.toString()
+            stockBajoInsumos = config.stockBajoInsumos.toString()
             backupAutomatico = config.backupAutomatico
             frecuenciaBackup = config.frecuenciaBackup.toString()
             temaOscuro = config.temaOscuro
@@ -328,13 +338,19 @@ fun ConfiguracionScreen(
                 icon = Icons.Default.Storage,
                 color = Color(0xFFFF5722)
             ) {
-                ModernConfigButton(
-                    title = "Respaldo de Datos",
-                    subtitle = "Exportar e importar respaldos completos",
-                    onClick = { navController.navigate("backup") },
-                    icon = Icons.Default.Backup,
-                    color = Color(0xFF1976D2)
-                )
+                SubscriptionGuard(
+                    subscriptionInfo = subscriptionInfo,
+                    featureName = "backup",
+                    onSubscribe = { navController.navigate("subscription") }
+                ) {
+                    ModernConfigButton(
+                        title = "Respaldo de Datos",
+                        subtitle = "Exportar e importar respaldos completos",
+                        onClick = { navController.navigate("backup") },
+                        icon = Icons.Default.Backup,
+                        color = Color(0xFF1976D2)
+                    )
+                }
                 
                 ModernConfigButton(
                     title = "Restablecer Configuración",
