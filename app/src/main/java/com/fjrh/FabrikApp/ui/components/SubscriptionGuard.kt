@@ -39,7 +39,10 @@ fun SubscriptionGuard(
                 // Si el trial expiró, bloquear TODO excepto la pantalla de suscripción
                 featureName == "subscription_screen"
             }
-            else -> true // Durante el trial, todo está disponible
+            else -> {
+                // Durante el trial, todo está disponible EXCEPTO backup
+                featureName != "backup"
+            }
         }
     } ?: false
 

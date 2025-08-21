@@ -103,5 +103,5 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1"
     
     // Google Play Billing
-    implementation 'com.android.billingclient:billing-ktx:6.1.0'
+    implementation 'com.android.billingclient:billing-ktx:7.0.0'
 }
