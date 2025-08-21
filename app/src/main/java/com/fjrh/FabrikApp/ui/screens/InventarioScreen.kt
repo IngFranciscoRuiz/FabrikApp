@@ -49,7 +49,7 @@ fun InventarioScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
                 .padding(top = 60.dp)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 100.dp)
         ) {
             // Header moderno
             Row(
@@ -204,7 +204,7 @@ fun InventarioScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 150.dp, end = 20.dp)
+                .padding(bottom = 100.dp, end = 20.dp)
         ) {
             FloatingActionButton(
                 onClick = { onAgregarClicked() },

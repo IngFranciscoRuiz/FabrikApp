@@ -44,7 +44,7 @@ fun VentasModernScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
                 
                 items(getMockPedidos()) { pedido ->
@@ -62,8 +62,7 @@ fun VentasModernScreen(
             onClick = { navController.navigate("nueva_venta") },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp)
-                .padding(bottom = 80.dp), // Extra padding for bottom nav
+                .padding(24.dp), // Extra padding for bottom nav
             containerColor = FabrikAppBlue,
             shape = CircleShape
         ) {

@@ -139,7 +139,7 @@ fun NotasScreen(
             onClick = { showAddDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(horizontal = 20.dp, vertical = 150.dp),
+                .padding(horizontal = 20.dp, vertical = 60.dp),
             containerColor = Color(0xFF1976D2),
             contentColor = Color.White
         ) {

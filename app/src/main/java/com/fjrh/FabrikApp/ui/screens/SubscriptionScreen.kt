@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.domain.model.SubscriptionStatus
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
+import com.fjrh.FabrikApp.data.billing.BillingService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,12 +32,58 @@ fun SubscriptionScreen(
     onSubscribe: () -> Unit,
     viewModel: SubscriptionViewModel = hiltViewModel()
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? android.app.Activity
+    
+    // Inicializar billing al cargar la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.initializeBilling()
+    }
     val subscriptionInfo by viewModel.subscriptionInfo.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Estados del billing
+    val billingStatus by viewModel.getBillingStatus().collectAsState()
+    val isBillingConnected by viewModel.getBillingConnectionStatus().collectAsState()
     
     LaunchedEffect(Unit) {
         viewModel.initializeTrial()
+    }
+    
+    // Mostrar mensajes de éxito y error
+    LaunchedEffect(successMessage) {
+        successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSuccess()
+        }
+    }
+    
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
+    
+    // Manejar estados del billing
+    LaunchedEffect(billingStatus) {
+        when (billingStatus) {
+            is BillingService.PurchaseStatus.Success -> {
+                snackbarHostState.showSnackbar("¡Compra exitosa! Tu suscripción está activa.")
+                viewModel.activatePremium() // Activar premium localmente
+            }
+            is BillingService.PurchaseStatus.Error -> {
+                snackbarHostState.showSnackbar((billingStatus as BillingService.PurchaseStatus.Error).message)
+            }
+            is BillingService.PurchaseStatus.Pending -> {
+                snackbarHostState.showSnackbar("Compra pendiente de confirmación...")
+            }
+            null -> {} // Estado inicial
+        }
     }
     
     Scaffold(
@@ -48,7 +96,8 @@ fun SubscriptionScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -58,6 +107,13 @@ fun SubscriptionScreen(
         ) {
             // Header con información del trial
             TrialStatusCard(subscriptionInfo)
+            
+            // Tarjeta de debug del workspace (solo para premium activo)
+            if (subscriptionInfo?.status == SubscriptionStatus.Active) {
+                Spacer(modifier = Modifier.height(16.dp))
+                WorkspaceDebugCard()
+                Spacer(modifier = Modifier.height(16.dp))
+            }
             
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -69,7 +125,8 @@ fun SubscriptionScreen(
             // Opciones de suscripción
             SubscriptionOptionsCard(
                 onSubscribe = onSubscribe,
-                isLoading = isLoading
+                isLoading = isLoading,
+                activity = activity
             )
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -136,12 +193,12 @@ private fun TrialStatusCard(subscriptionInfo: SubscriptionInfo?) {
             
             when (subscriptionInfo?.status) {
                 SubscriptionStatus.Trial -> {
-                    Text(
-                        text = "Te quedan ${subscriptionInfo.daysRemaining} días de prueba",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF1976D2)
-                    )
+                                Text(
+                text = "Prueba gratuita de 7 días - Te quedan ${subscriptionInfo.daysRemaining} días",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = Color(0xFF1976D2)
+            )
                 }
                 SubscriptionStatus.Expired -> {
                     Text(
@@ -186,7 +243,7 @@ private fun PremiumBenefitsCard() {
             modifier = Modifier.padding(24.dp)
         ) {
             Text(
-                text = "Beneficios Premium",
+                text = "Todo lo que necesitas para crecer",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF7B1FA2)
@@ -195,14 +252,12 @@ private fun PremiumBenefitsCard() {
             Spacer(modifier = Modifier.height(16.dp))
             
             val benefits = listOf(
-                "✨ Agregar, editar y eliminar ingredientes",
-                "📊 Gestión completa de fórmulas",
-                "💰 Registro de ventas ilimitado",
-                "📈 Análisis avanzados y reportes",
-                "💾 Exportar e importar datos",
-                "🔄 Backup automático en la nube",
-                "👥 Soporte para múltiples usuarios",
-                "🎯 Funcionalidades exclusivas"
+                "✅ Agregar, editar y eliminar ingredientes",
+                "✅ Gestión completa de fórmulas",
+                "✅ Registro de ventas ilimitado",
+                "✅ Exportar e importar datos",
+                "📈 Balance automático de ingresos y egresos",
+                "🔧 Mejoras y actualizaciones continuas"
             )
             
             benefits.forEach { benefit ->
@@ -233,8 +288,10 @@ private fun PremiumBenefitsCard() {
 @Composable
 private fun SubscriptionOptionsCard(
     onSubscribe: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    activity: android.app.Activity?
 ) {
+    val viewModel: SubscriptionViewModel = hiltViewModel()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,7 +315,7 @@ private fun SubscriptionOptionsCard(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Acceso completo a todas las funcionalidades",
+                text = "Desbloquea todo el potencial de tu negocio",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = Color(0xFF424242)
@@ -274,20 +331,24 @@ private fun SubscriptionOptionsCard(
                 Box(modifier = Modifier.weight(1f)) {
                     SubscriptionOption(
                         title = "Mensual",
-                        price = "$9.99",
+                        price = "$79 MXN",
                         period = "mes",
                         isPopular = false,
-                        onClick = onSubscribe
+                        onClick = {
+                            activity?.let { viewModel.purchaseMonthlySubscription(it) }
+                        }
                     )
                 }
                 
                 Box(modifier = Modifier.weight(1f)) {
                     SubscriptionOption(
                         title = "Anual",
-                        price = "$99.99",
+                        price = "$749 MXN",
                         period = "año",
                         isPopular = true,
-                        onClick = onSubscribe
+                        onClick = {
+                            activity?.let { viewModel.purchaseYearlySubscription(it) }
+                        }
                     )
                 }
             }
@@ -318,7 +379,7 @@ private fun SubscriptionOptionsCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Suscribirse Ahora",
+                        text = "Comenzar Ahora",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -383,7 +444,7 @@ private fun SubscriptionOption(
             if (isPopular) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Ahorra 17%",
+                    text = "Ahorra 21%",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF4CAF50)
@@ -418,8 +479,54 @@ private fun AdditionalInfoCard() {
             Text(
                 text = "• Cancelación en cualquier momento\n" +
                        "• Acceso inmediato a todas las funciones\n" +
-                       "• Soporte técnico prioritario\n" +
+                       "• Datos seguros y respaldados\n" +
                        "• Actualizaciones gratuitas",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF424242)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WorkspaceDebugCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF3E0)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.BugReport,
+                    contentDescription = null,
+                    tint = Color(0xFFE65100),
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Debug: Estado del Workspace",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE65100)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Text(
+                text = "• Workspace ID: ${System.currentTimeMillis()}\n" +
+                       "• Modo: Premium\n" +
+                       "• Sincronización: Activa\n" +
+                       "• Última actualización: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date())}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF424242)
             )

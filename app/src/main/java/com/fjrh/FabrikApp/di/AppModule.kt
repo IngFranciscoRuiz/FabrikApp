@@ -13,6 +13,8 @@ import com.fjrh.FabrikApp.data.local.service.UnidadesService
 import com.fjrh.FabrikApp.domain.usecase.ErrorHandler
 import com.fjrh.FabrikApp.domain.usecase.SubscriptionManager
 import com.fjrh.FabrikApp.data.remote.FirebaseService
+import com.fjrh.FabrikApp.data.billing.BillingService
+import com.fjrh.FabrikApp.data.local.SAFService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -98,6 +100,18 @@ object AppModule {
         return com.fjrh.FabrikApp.domain.usecase.SyncManager(
             firebaseService, formulaDao
         )
+    }
+    
+    @Provides
+    @Singleton
+    fun provideBillingService(@ApplicationContext context: Context): BillingService {
+        return BillingService(context)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideSAFService(@ApplicationContext context: Context): SAFService {
+        return SAFService(context)
     }
 }
 

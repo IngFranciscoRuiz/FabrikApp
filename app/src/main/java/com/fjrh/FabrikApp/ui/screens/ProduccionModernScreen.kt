@@ -44,7 +44,7 @@ fun ProduccionModernScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
                 
                 // Fórmulas Section
@@ -87,8 +87,7 @@ fun ProduccionModernScreen(
             onClick = { navController.navigate("nueva_produccion") },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(24.dp)
-                .padding(bottom = 80.dp), // Extra padding for bottom nav
+                .padding(24.dp), // Extra padding for bottom nav
             containerColor = FabrikAppBlue,
             shape = CircleShape
         ) {

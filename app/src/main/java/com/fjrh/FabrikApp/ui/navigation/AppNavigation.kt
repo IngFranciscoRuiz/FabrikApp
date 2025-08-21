@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets
 import com.fjrh.FabrikApp.ui.screens.MainMenuScreen
 import com.fjrh.FabrikApp.ui.screens.SubscriptionScreen
 import com.fjrh.FabrikApp.ui.screens.LoginScreen
+import com.fjrh.FabrikApp.ui.screens.BackupScreen
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.LoginViewModel
 
@@ -196,6 +197,10 @@ fun AppNavigation(navController: NavHostController) {
         composable(Routes.Configuracion) {
             ConfiguracionScreen(navController)
         }
+        
+        composable("backup") {
+            BackupScreen(navController)
+        }
 
         // Rutas adicionales para accesos rápidos
         composable("nueva_produccion") {
@@ -214,7 +219,8 @@ fun AppNavigation(navController: NavHostController) {
             SubscriptionScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onSubscribe = {
-                    // Aquí iría la lógica de pago
+                    // En producción, esto se manejará desde la pantalla de suscripción
+                    // con los botones específicos para mensual/anual
                     navController.popBackStack()
                 }
             )

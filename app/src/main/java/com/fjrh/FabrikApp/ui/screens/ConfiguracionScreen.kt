@@ -36,12 +36,7 @@ import androidx.navigation.NavController
 import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.net.Uri
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,22 +44,7 @@ fun ConfiguracionScreen(
     navController: NavController,
     viewModel: ConfiguracionViewModel = hiltViewModel()
 ) {
-    // Launchers para selección de archivos
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        uri?.let { 
-            viewModel.exportarDatosExternos(it)
-        }
-    }
-    
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let { 
-            viewModel.importarDatosDesdeUri(it)
-        }
-    }
+
     var stockAltoProductos by remember { mutableStateOf("") }
     var stockMedioProductos by remember { mutableStateOf("") }
         var stockBajoProductos by remember { mutableStateOf("") }
@@ -349,19 +329,11 @@ fun ConfiguracionScreen(
                 color = Color(0xFFFF5722)
             ) {
                 ModernConfigButton(
-                    title = "Exportar Datos",
-                    subtitle = "Descarga una copia de todos los datos",
-                    onClick = { exportLauncher.launch("fabrikapp_backup_${System.currentTimeMillis()}.json") },
-                    icon = Icons.Default.Download,
-                    color = Color(0xFF4CAF50)
-                )
-                
-                ModernConfigButton(
-                    title = "Importar Datos",
-                    subtitle = "Restaura datos desde un archivo",
-                    onClick = { importLauncher.launch(arrayOf("application/json")) },
-                    icon = Icons.Default.Upload,
-                    color = Color(0xFF2196F3)
+                    title = "Respaldo de Datos",
+                    subtitle = "Exportar e importar respaldos completos",
+                    onClick = { navController.navigate("backup") },
+                    icon = Icons.Default.Backup,
+                    color = Color(0xFF1976D2)
                 )
                 
                 ModernConfigButton(

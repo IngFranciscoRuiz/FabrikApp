@@ -80,7 +80,7 @@ fun AgregarIngredienteScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
                 .padding(top = 40.dp)
-                .padding(bottom = 16.dp)
+                .padding(bottom = 100.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -117,7 +117,7 @@ fun AgregarIngredienteScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Descripción
             Card(
@@ -137,7 +137,7 @@ fun AgregarIngredienteScreen(
                         fontWeight = FontWeight.Bold
                     )
                     
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
                         text = "Agrega un nuevo ingrediente al inventario",
@@ -176,8 +176,8 @@ fun AgregarIngredienteScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Campo Nombre
                     ModernFormField(

@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import android.widget.Toast
 import com.fjrh.FabrikApp.ui.viewmodel.MainMenuViewModel
-import com.fjrh.FabrikApp.ui.components.FabrikBottomNavigation
+
 import com.fjrh.FabrikApp.ui.components.SubscriptionStatusIndicator
 import com.fjrh.FabrikApp.ui.components.MultiUserStatusIndicator
 import com.fjrh.FabrikApp.ui.components.SubscriptionGuard

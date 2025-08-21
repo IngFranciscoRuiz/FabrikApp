@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.domain.result.Result
 import com.fjrh.FabrikApp.domain.usecase.SubscriptionManager
+import com.fjrh.FabrikApp.data.billing.BillingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubscriptionViewModel @Inject constructor(
-    private val subscriptionManager: SubscriptionManager
+    private val subscriptionManager: SubscriptionManager,
+    private val billingService: BillingService
 ) : ViewModel() {
 
     private val _subscriptionInfo = MutableStateFlow<SubscriptionInfo?>(null)
@@ -97,6 +99,22 @@ class SubscriptionViewModel @Inject constructor(
         subscriptionManager.clearSubscriptionData()
         loadSubscriptionInfo()
     }
+    
+    fun initializeBilling() {
+        billingService.initializeBilling()
+    }
+    
+    fun purchaseMonthlySubscription(activity: android.app.Activity) {
+        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_MONTHLY)
+    }
+    
+    fun purchaseYearlySubscription(activity: android.app.Activity) {
+        billingService.purchaseSubscription(activity, BillingService.SUBSCRIPTION_YEARLY)
+    }
+    
+    fun getBillingStatus() = billingService.purchaseStatus
+    
+    fun getBillingConnectionStatus() = billingService.isConnected
     
     // Funciones de testing - ELIMINAR EN PRODUCCIÓN
     fun simulateTrialDays(daysRemaining: Int) {

@@ -200,7 +200,7 @@ fun ProduccionScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 80.dp)
                     .padding(horizontal = 20.dp)
             ) {
                 Button(
