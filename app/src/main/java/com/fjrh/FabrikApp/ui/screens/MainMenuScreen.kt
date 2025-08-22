@@ -83,7 +83,10 @@ fun MainMenuScreen(
     SubscriptionGuard(
         subscriptionInfo = subscriptionInfo,
         featureName = "main_app",
-        onSubscribe = { navController.navigate("subscription") }
+        onSubscribe = { 
+            // Ir directo al Paywall para que pueda usar Google Play Billing
+            navController.navigate("paywall")
+        }
     ) {
         Box(
             modifier = Modifier
@@ -115,7 +118,7 @@ fun MainMenuScreen(
                 item { 
                     SubscriptionStatusIndicator(
                         subscriptionInfo = subscriptionInfo,
-                        onSubscribe = { navController.navigate("subscription") }
+                        onSubscribe = { navController.navigate("paywall") }
                     )
                 }
                 item { 

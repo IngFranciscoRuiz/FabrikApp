@@ -2,6 +2,7 @@ package com.fjrh.FabrikApp.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -38,14 +39,14 @@ fun SubscriptionGuard(
             info.isBlocked -> false
             info.isTrialExpired() -> {
                 // Si el trial expiró, bloquear TODO excepto la pantalla de suscripción
-                featureName == "subscription_screen"
+                featureName == "subscription_screen" || featureName == "paywall"
             }
             else -> {
                 // Durante el trial, todo está disponible EXCEPTO backup
                 featureName != "backup"
             }
         }
-    } ?: false
+    } ?: true // Si no hay info de suscripción, permitir acceso
 
     if (isFeatureAvailable) {
         content()
@@ -113,7 +114,7 @@ private fun FeatureLockedOverlay(
             // Aquí iría el contenido original pero deshabilitado
         }
         
-        // Overlay de bloqueo
+        // Overlay simple con una sola tarjeta
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -139,11 +140,7 @@ private fun FeatureLockedOverlay(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = when (subscriptionInfo?.status) {
-                        SubscriptionStatus.Expired -> "Funcionalidad Bloqueada"
-                        SubscriptionStatus.Blocked -> "Acceso Denegado"
-                        else -> "Funcionalidad Premium"
-                    },
+                    text = "Funcionalidad Premium",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -153,11 +150,7 @@ private fun FeatureLockedOverlay(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = when (subscriptionInfo?.status) {
-                        SubscriptionStatus.Expired -> "Tu prueba gratuita ha expirado. Suscríbete para continuar usando esta funcionalidad."
-                        SubscriptionStatus.Blocked -> "Se detectó manipulación de datos. Contacta soporte técnico."
-                        else -> "Esta funcionalidad está disponible solo para usuarios Premium."
-                    },
+                    text = "Suscríbete para obtener todas las funciones.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = Color(0xFF424242)
@@ -165,63 +158,27 @@ private fun FeatureLockedOverlay(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                when (subscriptionInfo?.status) {
-                    SubscriptionStatus.Expired -> {
-                        Button(
-                            onClick = onSubscribe,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4CAF50)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Suscribirse Ahora",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    SubscriptionStatus.Blocked -> {
-                        Text(
-                            text = "Contacta soporte técnico",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFFD32F2F),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    else -> {
-                        Button(
-                            onClick = onSubscribe,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF4CAF50)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Actualizar a Premium",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                Button(
+                    onClick = onSubscribe,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Suscribirse Ahora",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

@@ -26,12 +26,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import com.google.firebase.auth.FirebaseAuth
+import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
 
 @Composable
 fun SplashScreen(
     navController: NavController
 ) {
     val onboardingViewModel: OnboardingViewModel = hiltViewModel()
+    val subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
     var startAnimation by remember { mutableStateOf(false) }
     val alphaAnim = animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
@@ -42,12 +44,25 @@ fun SplashScreen(
         startAnimation = true
         delay(3000L)
         
+        // Inicializar billing para verificar suscripción
+        subscriptionViewModel.initializeBilling()
+        
         // Verificar si ya se mostró el onboarding
         val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
         
         if (hasSeenOnboarding) {
-            navController.navigate("paywall") {
-                popUpTo(Routes.Splash) { inclusive = true }
+            // Verificar si es premium
+            val subscriptionInfo = subscriptionViewModel.subscriptionInfo.first()
+            if (subscriptionInfo?.isPremium == true) {
+                // Si es premium, ir directo al menú principal
+                navController.navigate("menu") {
+                    popUpTo(Routes.Splash) { inclusive = true }
+                }
+            } else {
+                // Si no es premium, ir al paywall
+                navController.navigate("paywall") {
+                    popUpTo(Routes.Splash) { inclusive = true }
+                }
             }
         } else {
             navController.navigate("onboarding") {
