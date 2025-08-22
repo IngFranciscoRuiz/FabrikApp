@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.fjrh.FabrikApp.ui.viewmodel.PaywallViewModel
+import android.content.ContextWrapper
 
 @Composable
 fun PaywallScreen(
@@ -27,7 +28,33 @@ fun PaywallScreen(
     viewModel: PaywallViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val activity = context as? FragmentActivity
+    
+    // Obtener activity de forma más confiable usando el contexto del NavController
+    val activity = remember {
+        try {
+            val navContext = navController.context
+            when {
+                navContext is FragmentActivity -> navContext
+                navContext is ContextWrapper -> {
+                    var current = navContext.baseContext
+                    while (current is ContextWrapper) {
+                        if (current is FragmentActivity) {
+                            current
+                            break
+                        }
+                        current = current.baseContext
+                    }
+                    null
+                }
+                else -> null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    } as? FragmentActivity
+    
+    println("PaywallScreen: Activity found: ${activity != null}")
+    
     val uiState by viewModel.uiState.collectAsState()
     
     // Estado local para mostrar error cerca del botón restore
@@ -206,8 +233,12 @@ fun PaywallScreen(
                     ),
                     isPopular = false,
                     onClick = {
+                        println("PaywallScreen: Monthly card clicked!")
                         activity?.let { act ->
+                            println("PaywallScreen: Activity found, calling purchaseSubscription(true)")
                             viewModel.purchaseSubscription(act, true)
+                        } ?: run {
+                            println("PaywallScreen: Activity is null!")
                         }
                     }
                 )
@@ -228,8 +259,12 @@ fun PaywallScreen(
                     ),
                     isPopular = true,
                     onClick = {
+                        println("PaywallScreen: Yearly card clicked!")
                         activity?.let { act ->
+                            println("PaywallScreen: Activity found, calling purchaseSubscription(false)")
                             viewModel.purchaseSubscription(act, false)
+                        } ?: run {
+                            println("PaywallScreen: Activity is null!")
                         }
                     }
                 )

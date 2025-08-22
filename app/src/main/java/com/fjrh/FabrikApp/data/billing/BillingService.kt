@@ -24,7 +24,7 @@ class BillingService @Inject constructor(
     private val _purchaseStatus = MutableStateFlow<PurchaseStatus?>(null)
     val purchaseStatus: StateFlow<PurchaseStatus?> = _purchaseStatus.asStateFlow()
     
-    // Nuevos StateFlows para offerTokens
+    // StateFlows para offerTokens
     private val _monthlyOfferToken = MutableStateFlow<String?>(null)
     val monthlyOfferToken: StateFlow<String?> = _monthlyOfferToken.asStateFlow()
     
@@ -42,9 +42,14 @@ class BillingService @Inject constructor(
     }
     
     companion object {
+        // Product ID principal de Google Play Console
         const val PRODUCT_ID = "fabrikapp_premium"
+        
+        // Planes básicos (base plans)
         const val BASE_PLAN_MONTHLY = "premium-mensual"
         const val BASE_PLAN_YEARLY = "premium-anual"
+        
+        // Ofertas de prueba gratuita
         const val OFFER_MONTHLY = "trial-mensual-7"
         const val OFFER_YEARLY = "trial-anual-7"
     }
@@ -83,7 +88,7 @@ class BillingService @Inject constructor(
         })
     }
     
-    // Nueva función para cargar detalles del producto y obtener offerTokens
+    // Función corregida para cargar detalles del producto y obtener offerTokens
     private fun loadProductDetails() {
         if (!_isConnected.value) return
         
@@ -104,7 +109,7 @@ class BillingService @Inject constructor(
                 if (productDetails != null) {
                     val offers = productDetails.subscriptionOfferDetails.orEmpty()
                     
-                    // Buscar ofertas específicas por offerId
+                    // Buscar ofertas específicas por basePlanId y offerId
                     val monthlyOffer = offers.find { offer ->
                         offer.basePlanId == BASE_PLAN_MONTHLY && 
                         offer.offerId == OFFER_MONTHLY
@@ -116,13 +121,19 @@ class BillingService @Inject constructor(
                     
                     _monthlyOfferToken.value = monthlyOffer?.offerToken
                     _yearlyOfferToken.value = yearlyOffer?.offerToken
+                    
+                    // Log para debugging
+                    println("BillingService: Monthly offer token: ${_monthlyOfferToken.value}")
+                    println("BillingService: Yearly offer token: ${_yearlyOfferToken.value}")
                 }
+            } else {
+                println("BillingService: Error loading product details: ${billingResult.debugMessage}")
             }
         }
     }
     
-    // Nueva función para verificar estado real de suscripción
-        fun refreshSubscriptionStatus() {
+    // Función para verificar estado real de suscripción
+    fun refreshSubscriptionStatus() {
         if (!_isConnected.value) return
 
         val params = QueryPurchasesParams.newBuilder()
@@ -137,13 +148,15 @@ class BillingService @Inject constructor(
                     purchase.purchaseState == Purchase.PurchaseState.PURCHASED
                 }
                 _isPremiumActive.value = premiumActive
+                println("BillingService: Premium active: $premiumActive")
             } else {
                 _isPremiumActive.value = false
+                println("BillingService: Error querying purchases: ${billingResult.debugMessage}")
             }
         }
     }
     
-    // Función actualizada para comprar suscripción específica
+    // Función corregida para comprar suscripción específica
     fun purchaseSubscription(activity: Activity, isMonthly: Boolean) {
         if (!_isConnected.value) {
             _purchaseStatus.value = PurchaseStatus.Error("Billing no está conectado")
@@ -157,9 +170,11 @@ class BillingService @Inject constructor(
         }
         
         if (offerToken == null) {
-            _purchaseStatus.value = PurchaseStatus.Error("Oferta no disponible")
+            _purchaseStatus.value = PurchaseStatus.Error("Oferta no disponible. Token: null")
             return
         }
+        
+        println("BillingService: Starting purchase with offer token: $offerToken")
         
         // Obtener ProductDetails para usar en el flujo de compra
         val productDetailsParamsList = listOf(
@@ -203,7 +218,11 @@ class BillingService @Inject constructor(
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
         
-        billingClient?.launchBillingFlow(activity, billingFlowParams)
+        val billingResult = billingClient?.launchBillingFlow(activity, billingFlowParams)
+        
+        if (billingResult?.responseCode != BillingClient.BillingResponseCode.OK) {
+            _purchaseStatus.value = PurchaseStatus.Error("Error al iniciar flujo de compra: ${billingResult?.debugMessage}")
+        }
     }
     
     private fun handlePurchase(purchase: Purchase) {
@@ -256,6 +275,4 @@ class BillingService @Inject constructor(
         billingClient = null
         _isConnected.value = false
     }
-    
-
 }
