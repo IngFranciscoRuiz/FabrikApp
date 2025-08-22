@@ -35,6 +35,10 @@ fun AppNavigation(navController: NavHostController) {
             OnboardingScreen(navController)
         }
 
+        composable("paywall") {
+            PaywallScreen(navController)
+        }
+
         composable(Routes.Menu) {
             MainMenuScreen(navController)
         }

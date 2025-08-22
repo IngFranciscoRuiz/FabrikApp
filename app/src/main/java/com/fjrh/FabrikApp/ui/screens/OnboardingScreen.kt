@@ -46,7 +46,7 @@ fun OnboardingScreen(
     fun navigateToMenu() {
         scope.launch {
             onboardingViewModel.markOnboardingAsSeen()
-            navController.navigate("menu") {
+            navController.navigate("paywall") {
                 popUpTo("onboarding") { inclusive = true }
             }
         }
