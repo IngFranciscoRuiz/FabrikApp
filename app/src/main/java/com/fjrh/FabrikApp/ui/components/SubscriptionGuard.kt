@@ -236,50 +236,14 @@ fun SubscriptionStatusIndicator(
     subscriptionInfo: SubscriptionInfo?,
     onSubscribe: () -> Unit
 ) {
-    subscriptionInfo?.let { info ->
-        when (info.status) {
-            SubscriptionStatus.Trial -> {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFE3F2FD)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Schedule,
-                            contentDescription = null,
-                            tint = Color(0xFF1976D2),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Trial: ${info.daysRemaining} días restantes",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF1976D2),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        TextButton(onClick = onSubscribe) {
-                            Text(
-                                text = "Actualizar",
-                                color = Color(0xFF1976D2),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
+            subscriptionInfo?.let { info ->
+            when (info.status) {
+                SubscriptionStatus.Trial -> {
+                    // En el sistema simplificado, no mostramos trial local
+                    // Google Play maneja todo el trial automáticamente
                 }
-            }
-            SubscriptionStatus.Expired -> {
+ 
+                SubscriptionStatus.Expired -> {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()

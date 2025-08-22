@@ -26,7 +26,7 @@ import com.fjrh.FabrikApp.data.local.SAFService
 import com.fjrh.FabrikApp.ui.viewmodel.BackupUiState
 import com.fjrh.FabrikApp.ui.viewmodel.BackupViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
-import com.fjrh.FabrikApp.ui.components.SubscriptionGuardWithBilling
+
 import kotlinx.coroutines.launch
 import android.app.Activity
 
@@ -75,16 +75,13 @@ fun BackupScreen(
     
     // Limpiar estado cuando se sale de la pantalla
     LaunchedEffect(Unit) {
-        // Inicializar trial
-        subscriptionViewModel.initializeTrial()
         viewModel.clearState()
     }
     
-    SubscriptionGuardWithBilling(
-        subscriptionInfo = subscriptionInfo,
-        billingService = billingService,
-        featureName = "backup",
-        onSubscribe = { navController.navigate("subscription") }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Box(
             modifier = Modifier
@@ -462,6 +459,6 @@ fun BackupScreen(
                 else -> { /* Estado idle, no mostrar nada */ }
             }
         }
-        }
     }
+}
 }

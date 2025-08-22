@@ -37,7 +37,7 @@ import com.fjrh.FabrikApp.domain.model.ConfiguracionStock
 import com.fjrh.FabrikApp.domain.model.SubscriptionInfo
 import com.fjrh.FabrikApp.ui.viewmodel.ConfiguracionViewModel
 import com.fjrh.FabrikApp.ui.viewmodel.SubscriptionViewModel
-import com.fjrh.FabrikApp.ui.components.SubscriptionGuardWithBilling
+
 import com.fjrh.FabrikApp.ui.utils.validarPrecio
 import java.io.File
 
@@ -79,9 +79,6 @@ fun ConfiguracionScreen(
 
         // Cargar configuración inicial
     LaunchedEffect(Unit) {
-        // Inicializar trial
-        subscriptionViewModel.initializeTrial()
-        
         viewModel.configuracion.collect { config ->
             stockAltoProductos = config.stockAltoProductos.toString()
             stockMedioProductos = config.stockMedioProductos.toString()
@@ -340,20 +337,13 @@ fun ConfiguracionScreen(
                 icon = Icons.Default.Storage,
                 color = Color(0xFFFF5722)
             ) {
-                SubscriptionGuardWithBilling(
-                    subscriptionInfo = subscriptionInfo,
-                    billingService = billingService,
-                    featureName = "backup",
-                    onSubscribe = { navController.navigate("subscription") }
-                ) {
-                    ModernConfigButton(
-                        title = "Respaldo de Datos",
-                        subtitle = "Exportar e importar respaldos completos",
-                        onClick = { navController.navigate("backup") },
-                        icon = Icons.Default.Backup,
-                        color = Color(0xFF1976D2)
-                    )
-                }
+                ModernConfigButton(
+                    title = "Respaldo de Datos",
+                    subtitle = "Exportar e importar respaldos completos",
+                    onClick = { navController.navigate("backup") },
+                    icon = Icons.Default.Backup,
+                    color = Color(0xFF1976D2)
+                )
                 
                 ModernConfigButton(
                     title = "Restablecer Configuración",

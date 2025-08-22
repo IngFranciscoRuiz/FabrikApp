@@ -68,10 +68,7 @@ fun MainMenuScreen(
     var showMultiUserMessage by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     
-    // Inicializar trial al cargar la pantalla
-    LaunchedEffect(Unit) {
-        subscriptionViewModel.initializeTrial()
-    }
+
     
     // Mostrar mensaje de confirmación por 3 segundos
     LaunchedEffect(isMultiUserActive) {

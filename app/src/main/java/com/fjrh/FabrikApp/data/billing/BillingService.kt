@@ -45,6 +45,8 @@ class BillingService @Inject constructor(
         const val PRODUCT_ID = "fabrikapp_premium"
         const val BASE_PLAN_MONTHLY = "premium-mensual"
         const val BASE_PLAN_YEARLY = "premium-anual"
+        const val OFFER_MONTHLY = "trial-mensual-7"
+        const val OFFER_YEARLY = "trial-anual-7"
     }
     
     fun initializeBilling() {
@@ -102,9 +104,15 @@ class BillingService @Inject constructor(
                 if (productDetails != null) {
                     val offers = productDetails.subscriptionOfferDetails.orEmpty()
                     
-                    // Buscar ofertas por basePlanId
-                    val monthlyOffer = offers.find { it.basePlanId == BASE_PLAN_MONTHLY }
-                    val yearlyOffer = offers.find { it.basePlanId == BASE_PLAN_YEARLY }
+                    // Buscar ofertas específicas por offerId
+                    val monthlyOffer = offers.find { offer ->
+                        offer.basePlanId == BASE_PLAN_MONTHLY && 
+                        offer.offerId == OFFER_MONTHLY
+                    }
+                    val yearlyOffer = offers.find { offer ->
+                        offer.basePlanId == BASE_PLAN_YEARLY && 
+                        offer.offerId == OFFER_YEARLY
+                    }
                     
                     _monthlyOfferToken.value = monthlyOffer?.offerToken
                     _yearlyOfferToken.value = yearlyOffer?.offerToken
@@ -116,6 +124,9 @@ class BillingService @Inject constructor(
     // Nueva función para verificar estado real de suscripción
     fun refreshSubscriptionStatus() {
         if (!_isConnected.value) return
+        
+        // Si estamos en modo testing, no sobrescribir el estado
+        if (isTestingMode) return
         
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
@@ -247,5 +258,19 @@ class BillingService @Inject constructor(
         billingClient?.endConnection()
         billingClient = null
         _isConnected.value = false
+    }
+    
+    // Variable para controlar si estamos en modo testing
+    private var isTestingMode = false
+    
+    // Función para simular premium en testing (SOLO PARA TESTING)
+    fun simulatePremiumForTesting() {
+        isTestingMode = true
+        _isPremiumActive.value = true
+    }
+    
+    // Función para salir del modo testing
+    fun exitTestingMode() {
+        isTestingMode = false
     }
 }

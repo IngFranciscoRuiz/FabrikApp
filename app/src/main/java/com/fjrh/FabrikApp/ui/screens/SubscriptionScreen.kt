@@ -51,9 +51,7 @@ fun SubscriptionScreen(
     val billingStatus by viewModel.getBillingStatus().collectAsState()
     val isBillingConnected by viewModel.getBillingConnectionStatus().collectAsState()
     
-    LaunchedEffect(Unit) {
-        viewModel.initializeTrial()
-    }
+
     
     // Mostrar mensajes de éxito y error
     LaunchedEffect(successMessage) {

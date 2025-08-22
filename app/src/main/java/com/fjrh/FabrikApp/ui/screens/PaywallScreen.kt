@@ -11,15 +11,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.fjrh.FabrikApp.ui.viewmodel.PaywallViewModel
 
 @Composable
 fun PaywallScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: PaywallViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
+    val uiState by viewModel.uiState.collectAsState()
+    
+    // Limpiar estado cuando se sale de la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.clearState()
+        // Inicializar billing si no está conectado
+        viewModel.initializeBilling()
+    }
+    
+    // Manejar estados de éxito
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is PaywallViewModel.PaywallUiState.Success -> {
+                navController.navigate("menu") {
+                    popUpTo("paywall") { inclusive = true }
+                }
+            }
+            else -> {}
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -91,7 +118,9 @@ fun PaywallScreen(
                     ),
                     isPopular = false,
                     onClick = {
-                        // Sin funcionalidad por ahora
+                        activity?.let { act ->
+                            viewModel.purchaseSubscription(act, true)
+                        }
                     }
                 )
             }
@@ -111,7 +140,9 @@ fun PaywallScreen(
                     ),
                     isPopular = true,
                     onClick = {
-                        // Sin funcionalidad por ahora
+                        activity?.let { act ->
+                            viewModel.purchaseSubscription(act, false)
+                        }
                     }
                 )
             }
@@ -122,7 +153,7 @@ fun PaywallScreen(
                 
                 OutlinedButton(
                     onClick = {
-                        // Sin funcionalidad por ahora
+                        viewModel.restoreSubscription()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -137,13 +168,11 @@ fun PaywallScreen(
                 }
             }
             
-            // Botón APP PRINCIPAL (para testing)
+            // Botón SIMULAR PREMIUM (para testing)
             item {
                 Button(
                     onClick = {
-                        navController.navigate("menu") {
-                            popUpTo("paywall") { inclusive = true }
-                        }
+                        viewModel.simulatePremium()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
@@ -152,20 +181,88 @@ fun PaywallScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Home,
+                        imageVector = Icons.Default.Star,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "APP PRINCIPAL",
+                        "SIMULAR PREMIUM",
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
             
+
+            
             item {
                 Spacer(modifier = Modifier.height(20.dp))
+            }
+            
+            // Estados de loading y error
+            when (uiState) {
+                is PaywallViewModel.PaywallUiState.Loading -> {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color(0xFF4CAF50),
+                                    strokeWidth = 2.dp
+                                )
+                                
+                                Spacer(modifier = Modifier.width(12.dp))
+                                
+                                Text(
+                                    text = "Procesando...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFF2E7D32)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                is PaywallViewModel.PaywallUiState.Error -> {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = Color(0xFFF44336),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                
+                                Spacer(modifier = Modifier.width(12.dp))
+                                
+                                Text(
+                                    text = (uiState as PaywallViewModel.PaywallUiState.Error).message,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color(0xFFC62828)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                else -> {}
             }
         }
     }

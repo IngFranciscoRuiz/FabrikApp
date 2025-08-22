@@ -35,35 +35,7 @@ class SubscriptionViewModel @Inject constructor(
         loadSubscriptionInfo()
     }
 
-    fun initializeTrial() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null
 
-            // Solo inicializar si no existe un trial previo
-            val currentInfo = subscriptionManager.getCurrentSubscriptionInfo()
-            if (currentInfo.trialStartDate == 0L) {
-                // No hay trial previo, crear uno nuevo
-                val result = subscriptionManager.initializeTrial()
-                when (result) {
-                    is Result.Success -> {
-                        _subscriptionInfo.value = result.data
-                        _successMessage.value = "Trial inicializado correctamente"
-                    }
-                    is Result.Error -> {
-                        _errorMessage.value = result.exception.message
-                    }
-                    is Result.Loading -> {
-                        // No debería ocurrir aquí
-                    }
-                }
-            } else {
-                // Ya existe un trial, solo cargar la información actual
-                _subscriptionInfo.value = currentInfo
-            }
-            _isLoading.value = false
-        }
-    }
 
     fun activatePremium() {
         viewModelScope.launch {
@@ -128,50 +100,7 @@ class SubscriptionViewModel @Inject constructor(
     
     fun getBillingService() = billingService
     
-    // Funciones de testing - ELIMINAR EN PRODUCCIÓN
-    fun simulateTrialDays(daysRemaining: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null
-            
-            val result = subscriptionManager.simulateTrialDays(daysRemaining)
-            when (result) {
-                is Result.Success -> {
-                    _subscriptionInfo.value = result.data
-                    _successMessage.value = "Trial simulado: $daysRemaining días restantes"
-                }
-                is Result.Error -> {
-                    _errorMessage.value = result.exception.message
-                }
-                is Result.Loading -> {
-                    // No debería ocurrir aquí
-                }
-            }
-            _isLoading.value = false
-        }
-    }
-    
-    fun simulateTrialExpired() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null
-            
-            val result = subscriptionManager.simulateTrialExpired()
-            when (result) {
-                is Result.Success -> {
-                    _subscriptionInfo.value = result.data
-                    _successMessage.value = "Trial simulado: Expirado"
-                }
-                is Result.Error -> {
-                    _errorMessage.value = result.exception.message
-                }
-                is Result.Loading -> {
-                    // No debería ocurrir aquí
-                }
-            }
-            _isLoading.value = false
-        }
-    }
+
     
     fun activatePremiumWithCode(code: String, firebaseService: com.fjrh.FabrikApp.data.remote.FirebaseService) {
         viewModelScope.launch {
