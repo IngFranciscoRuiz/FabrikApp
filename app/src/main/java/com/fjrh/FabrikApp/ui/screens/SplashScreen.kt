@@ -46,7 +46,7 @@ fun SplashScreen(
         val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
         
         if (hasSeenOnboarding) {
-            navController.navigate(Routes.Menu) {
+            navController.navigate("paywall") {
                 popUpTo(Routes.Splash) { inclusive = true }
             }
         } else {
