@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -29,6 +30,9 @@ fun PaywallScreen(
     val activity = context as? FragmentActivity
     val uiState by viewModel.uiState.collectAsState()
     
+    // Estado local para mostrar error cerca del botón restore
+    var showRestoreError by remember { mutableStateOf<String?>(null) }
+    
     // Limpiar estado cuando se sale de la pantalla
     LaunchedEffect(Unit) {
         viewModel.clearState()
@@ -36,15 +40,21 @@ fun PaywallScreen(
         viewModel.initializeBilling()
     }
     
-    // Manejar estados de éxito
+    // Manejar estados de éxito y error
     LaunchedEffect(uiState) {
         when (uiState) {
             is PaywallViewModel.PaywallUiState.Success -> {
+                showRestoreError = null
                 navController.navigate("menu") {
                     popUpTo("paywall") { inclusive = true }
                 }
             }
-            else -> {}
+            is PaywallViewModel.PaywallUiState.Error -> {
+                showRestoreError = (uiState as PaywallViewModel.PaywallUiState.Error).message
+            }
+            else -> {
+                showRestoreError = null
+            }
         }
     }
     Box(
@@ -60,17 +70,17 @@ fun PaywallScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 // Icono principal
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
                     tint = Color(0xFFFFD700),
-                    modifier = Modifier.size(60.dp)
+                    modifier = Modifier.size(40.dp)
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Título
                 Text(
@@ -81,17 +91,7 @@ fun PaywallScreen(
                     color = Color(0xFF1A1A1A)
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Descripción
-                Text(
-                    text = "Accede a todas las funcionalidades avanzadas",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = Color(0xFF666666)
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 
                 // Información de prueba gratuita
                 Text(
@@ -103,8 +103,96 @@ fun PaywallScreen(
                 )
             }
             
+            // Botón YA ERES PREMIUM (ultra compacto)
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFE8F5E8)
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "¿Ya tienes una suscripción?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32),
+                            textAlign = TextAlign.Center
+                        )
+                        
+                        Spacer(modifier = Modifier.height(6.dp))
+                        
+                        Button(
+                            onClick = {
+                                viewModel.restoreSubscription()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4CAF50)
+                            ),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Restore,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                "YA ERES PREMIUM",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Mensaje de error para restore (cerca del botón)
+            showRestoreError?.let { errorMessage ->
+                item {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Error,
+                                contentDescription = null,
+                                tint = Color(0xFFF44336),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            Text(
+                                text = errorMessage,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFC62828)
+                            )
+                        }
+                    }
+                }
+            }
+            
             // Tarjeta de suscripción mensual
             item {
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 PaywallSubscriptionCard(
                     title = "Plan Mensual",
                     price = "$79 MXN",
@@ -112,7 +200,7 @@ fun PaywallScreen(
                     trialText = "7 días de prueba gratuita",
                     features = listOf(
                         "✓ Acceso completo a todas las funciones",
-                        "✓ Backup automático",
+                        "✓ Exportación e importación de datos",
                         "✓ Soporte prioritario",
                         "✓ Actualizaciones gratuitas"
                     ),
@@ -147,51 +235,7 @@ fun PaywallScreen(
                 )
             }
             
-            // Botón YA ERES PREMIUM
-            item {
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                OutlinedButton(
-                    onClick = {
-                        viewModel.restoreSubscription()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Restore,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("YA ERES PREMIUM")
-                }
-            }
-            
-            // Botón SIMULAR PREMIUM (para testing)
-            item {
-                Button(
-                    onClick = {
-                        viewModel.simulatePremium()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF9C27B0)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "SIMULAR PREMIUM",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+
             
 
             
@@ -199,69 +243,37 @@ fun PaywallScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
             
-            // Estados de loading y error
+            // Estado de loading
             when (uiState) {
                 is PaywallViewModel.PaywallUiState.Loading -> {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E8)),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(16.dp),
                                     color = Color(0xFF4CAF50),
                                     strokeWidth = 2.dp
                                 )
                                 
-                                Spacer(modifier = Modifier.width(12.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 
                                 Text(
                                     text = "Procesando...",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF2E7D32)
                                 )
                             }
                         }
                     }
                 }
-                
-                is PaywallViewModel.PaywallUiState.Error -> {
-                    item {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = Color(0xFFF44336),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                
-                                Spacer(modifier = Modifier.width(12.dp))
-                                
-                                Text(
-                                    text = (uiState as PaywallViewModel.PaywallUiState.Error).message,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color(0xFFC62828)
-                                )
-                            }
-                        }
-                    }
-                }
-                
                 else -> {}
             }
         }
@@ -283,11 +295,11 @@ private fun PaywallSubscriptionCard(
         colors = CardDefaults.cardColors(
             containerColor = if (isPopular) Color(0xFFE3F2FD) else Color.White
         ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             // Badge popular en la parte superior
             if (isPopular) {
@@ -311,7 +323,7 @@ private fun PaywallSubscriptionCard(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             }
             
             // Header sin badge
@@ -323,7 +335,7 @@ private fun PaywallSubscriptionCard(
                 ) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1A1A1A)
                     )
@@ -336,7 +348,7 @@ private fun PaywallSubscriptionCard(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 
                 Row(
                     verticalAlignment = Alignment.Bottom
@@ -355,22 +367,22 @@ private fun PaywallSubscriptionCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             
             // Features
             Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 features.forEach { feature ->
                     Text(
                         text = feature,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF666666)
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             // Botón de suscripción
             Button(

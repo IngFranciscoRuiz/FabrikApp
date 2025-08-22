@@ -68,30 +68,7 @@ class PaywallViewModel @Inject constructor(
         }
     }
 
-    // Función para simular estado premium (SOLO PARA TESTING)
-    fun simulatePremium() {
-        viewModelScope.launch {
-            _uiState.value = PaywallUiState.Loading
-            
-            try {
-                // Primero simular que Google Play confirma que es premium
-                // Esto es necesario porque el sistema verifica billingService.isPremiumActive
-                billingService.simulatePremiumForTesting()
-                
-                // Luego limpiar datos existentes y activar premium
-                subscriptionManager.clearSubscriptionData()
-                val result = subscriptionManager.activatePremium()
-                
-                if (result is com.fjrh.FabrikApp.domain.result.Result.Success) {
-                    _uiState.value = PaywallUiState.Success
-                } else {
-                    _uiState.value = PaywallUiState.Error("Error al simular premium")
-                }
-            } catch (e: Exception) {
-                _uiState.value = PaywallUiState.Error("Error al simular premium: ${e.message}")
-            }
-        }
-    }
+
 
 
 

@@ -122,12 +122,9 @@ class BillingService @Inject constructor(
     }
     
     // Nueva función para verificar estado real de suscripción
-    fun refreshSubscriptionStatus() {
+        fun refreshSubscriptionStatus() {
         if (!_isConnected.value) return
-        
-        // Si estamos en modo testing, no sobrescribir el estado
-        if (isTestingMode) return
-        
+
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
@@ -260,17 +257,5 @@ class BillingService @Inject constructor(
         _isConnected.value = false
     }
     
-    // Variable para controlar si estamos en modo testing
-    private var isTestingMode = false
-    
-    // Función para simular premium en testing (SOLO PARA TESTING)
-    fun simulatePremiumForTesting() {
-        isTestingMode = true
-        _isPremiumActive.value = true
-    }
-    
-    // Función para salir del modo testing
-    fun exitTestingMode() {
-        isTestingMode = false
-    }
+
 }
