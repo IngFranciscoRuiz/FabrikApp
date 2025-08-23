@@ -85,7 +85,10 @@ fun MainMenuScreen(
         featureName = "main_app",
         onSubscribe = { 
             // Ir directo al Paywall para que pueda usar Google Play Billing
-            navController.navigate("paywall")
+            navController.navigate("paywall") {
+                // No agregar a la pila de navegación si ya estamos en paywall
+                launchSingleTop = true
+            }
         }
     ) {
         Box(

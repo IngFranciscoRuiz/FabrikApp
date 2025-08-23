@@ -47,19 +47,23 @@ fun SplashScreen(
         // Inicializar billing para verificar suscripción
         subscriptionViewModel.initializeBilling()
         
+        // Esperar a que billing se conecte y verifique el estado real
+        delay(1000L)
+        
         // Verificar si ya se mostró el onboarding
         val hasSeenOnboarding = onboardingViewModel.hasSeenOnboarding.first()
         
         if (hasSeenOnboarding) {
-            // Verificar si es premium
-            val subscriptionInfo = subscriptionViewModel.subscriptionInfo.first()
-            if (subscriptionInfo?.isPremium == true) {
-                // Si es premium, ir directo al menú principal
+            // Verificar estado real de Google Play
+            val isPremiumActive = subscriptionViewModel.getBillingService().isPremiumActive.first()
+            
+            if (isPremiumActive) {
+                // Si Google Play confirma que es premium, ir directo al menú principal
                 navController.navigate("menu") {
                     popUpTo(Routes.Splash) { inclusive = true }
                 }
             } else {
-                // Si no es premium, ir al paywall
+                // Si no es premium en Google Play, ir al paywall
                 navController.navigate("paywall") {
                     popUpTo(Routes.Splash) { inclusive = true }
                 }

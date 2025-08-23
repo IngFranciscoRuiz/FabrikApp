@@ -81,9 +81,11 @@ fun PaywallScreen(
         viewModel.clearState()
         // Inicializar billing si no está conectado
         viewModel.initializeBilling()
+        // Observar estado de compra
+        viewModel.observePurchaseStatus()
     }
     
-    // Manejar estados de éxito y error
+    // Manejar estados de éxito, error y cancelación
     LaunchedEffect(uiState) {
         when (uiState) {
             is PaywallViewModel.PaywallUiState.Success -> {
@@ -95,6 +97,11 @@ fun PaywallScreen(
             is PaywallViewModel.PaywallUiState.Error -> {
                 showRestoreError = (uiState as PaywallViewModel.PaywallUiState.Error).message
             }
+            is PaywallViewModel.PaywallUiState.Cancelled -> {
+                showRestoreError = null
+                // Limpiar estado después de cancelación
+                viewModel.clearState()
+            }
             else -> {
                 showRestoreError = null
             }
@@ -105,6 +112,19 @@ fun PaywallScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F5F5))
     ) {
+        // Botón de volver en la parte superior
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopStart)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Volver",
+                tint = Color(0xFF666666)
+            )
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

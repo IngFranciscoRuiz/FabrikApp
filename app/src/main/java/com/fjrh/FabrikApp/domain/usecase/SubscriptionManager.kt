@@ -39,20 +39,36 @@ class SubscriptionManager @Inject constructor(
      * Obtiene la información actual de suscripción
      */
     fun getCurrentSubscriptionInfo(): SubscriptionInfo {
-        val isPremium = prefs.getBoolean(KEY_IS_PREMIUM, false)
+        // Verificar estado real de Google Play primero
+        val isPremiumActive = billingService.isPremiumActive.value
+        
+        // Si Google Play confirma que es premium, usar ese estado
+        if (isPremiumActive) {
+            return SubscriptionInfo(
+                status = SubscriptionStatus.Active,
+                trialStartDate = 0L,
+                trialEndDate = 0L,
+                isPremium = true,
+                daysRemaining = 0,
+                isBlocked = false
+            )
+        }
+        
+        // Si no es premium en Google Play, verificar estado local
+        val isPremiumLocal = prefs.getBoolean(KEY_IS_PREMIUM, false)
         val isBlocked = prefs.getBoolean(KEY_IS_BLOCKED, false)
         
         val status = when {
-            isPremium -> SubscriptionStatus.Active
+            isPremiumLocal -> SubscriptionStatus.Active
             isBlocked -> SubscriptionStatus.Blocked
-            else -> SubscriptionStatus.Expired // Sin trial local, solo premium o bloqueado
+            else -> SubscriptionStatus.Expired
         }
         
         return SubscriptionInfo(
             status = status,
             trialStartDate = 0L,
             trialEndDate = 0L,
-            isPremium = isPremium,
+            isPremium = isPremiumLocal,
             daysRemaining = 0,
             isBlocked = isBlocked
         )
@@ -118,6 +134,17 @@ class SubscriptionManager @Inject constructor(
      */
     fun clearSubscriptionData() {
         prefs.edit().clear().apply()
+    }
+    
+    /**
+     * Limpia el estado premium local cuando Google Play indica que no es premium
+     */
+    fun clearPremiumState() {
+        prefs.edit()
+            .putBoolean(KEY_IS_PREMIUM, false)
+            .putBoolean(KEY_IS_BLOCKED, false)
+            .apply()
+        println("SubscriptionManager: Premium state cleared")
     }
     
 

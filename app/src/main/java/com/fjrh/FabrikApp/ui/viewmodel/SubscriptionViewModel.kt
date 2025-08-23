@@ -33,6 +33,21 @@ class SubscriptionViewModel @Inject constructor(
 
     init {
         loadSubscriptionInfo()
+        observeBillingStatus()
+    }
+    
+    private fun observeBillingStatus() {
+        viewModelScope.launch {
+            billingService.isPremiumActive.collect { isPremiumActive ->
+                // Cuando el estado de Google Play cambia, actualizar la información local
+                if (!isPremiumActive) {
+                    // Si Google Play dice que no es premium, limpiar estado local
+                    subscriptionManager.clearPremiumState()
+                }
+                // Recargar información de suscripción
+                loadSubscriptionInfo()
+            }
+        }
     }
 
 
@@ -99,6 +114,10 @@ class SubscriptionViewModel @Inject constructor(
     fun getPremiumStatus() = billingService.isPremiumActive
     
     fun getBillingService() = billingService
+    
+    fun refreshSubscriptionStatus() {
+        billingService.refreshSubscriptionStatus()
+    }
     
 
     

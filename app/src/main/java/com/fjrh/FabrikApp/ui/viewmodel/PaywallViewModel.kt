@@ -31,6 +31,7 @@ class PaywallViewModel @Inject constructor(
         object Loading : PaywallUiState()
         object Success : PaywallUiState()
         data class Error(val message: String) : PaywallUiState()
+        object Cancelled : PaywallUiState()
     }
 
     fun purchaseSubscription(activity: Activity, isMonthly: Boolean) {
@@ -102,6 +103,31 @@ class PaywallViewModel @Inject constructor(
     }
     
     fun getBillingService() = billingService
+    
+    fun observePurchaseStatus() {
+        viewModelScope.launch {
+            billingService.purchaseStatus.collect { status ->
+                when (status) {
+                    is BillingService.PurchaseStatus.Success -> {
+                        _uiState.value = PaywallUiState.Success
+                    }
+                    is BillingService.PurchaseStatus.Error -> {
+                        if (status.message.contains("cancelada")) {
+                            _uiState.value = PaywallUiState.Cancelled
+                        } else {
+                            _uiState.value = PaywallUiState.Error(status.message)
+                        }
+                    }
+                    is BillingService.PurchaseStatus.Pending -> {
+                        _uiState.value = PaywallUiState.Loading
+                    }
+                    null -> {
+                        // No hacer nada, mantener estado actual
+                    }
+                }
+            }
+        }
+    }
     
     fun initializeBilling() {
         viewModelScope.launch {

@@ -73,8 +73,13 @@ class BillingService @Inject constructor(
                         handlePurchase(purchase)
                     }
                 } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
-                    _purchaseStatus.value = PurchaseStatus.Error("Compra cancelada por el usuario")
+                    println("BillingService: Purchase canceled by user")
+                    _purchaseStatus.value = PurchaseStatus.Error("Compra cancelada")
+                } else if (billingResult.responseCode == BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE) {
+                    println("BillingService: Service unavailable")
+                    _purchaseStatus.value = PurchaseStatus.Error("Servicio no disponible")
                 } else {
+                    println("BillingService: Purchase error: ${billingResult.debugMessage}")
                     _purchaseStatus.value = PurchaseStatus.Error("Error en la compra: ${billingResult.debugMessage}")
                 }
             }
@@ -204,11 +209,25 @@ class BillingService @Inject constructor(
                 }
                 _isPremiumActive.value = premiumActive
                 println("BillingService: Premium active: $premiumActive")
+                
+                // Si no es premium activo, limpiar estado local
+                if (!premiumActive) {
+                    clearLocalPremiumState()
+                }
             } else {
                 _isPremiumActive.value = false
                 println("BillingService: Error querying purchases: ${billingResult.debugMessage}")
+                // En caso de error, asumir que no es premium
+                clearLocalPremiumState()
             }
         }
+    }
+    
+    // Función para limpiar estado premium local
+    private fun clearLocalPremiumState() {
+        println("BillingService: Clearing local premium state")
+        // Notificar al SubscriptionManager para limpiar estado local
+        // Esto se manejará a través del SubscriptionManager
     }
     
     // Función corregida para comprar suscripción específica con fallback automático
