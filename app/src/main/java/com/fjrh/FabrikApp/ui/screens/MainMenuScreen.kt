@@ -57,6 +57,11 @@ fun MainMenuScreen(
     val errorMessage by subscriptionViewModel.errorMessage.collectAsState()
     val successMessage by subscriptionViewModel.successMessage.collectAsState()
     
+    // Observar cambios en el estado de suscripción para actualizar automáticamente
+    LaunchedEffect(Unit) {
+        subscriptionViewModel.refreshSubscriptionStatus()
+    }
+    
     // Estados para sincronización
     var isSyncing by remember { mutableStateOf(false) }
     var syncMessage by remember { mutableStateOf<String?>(null) }

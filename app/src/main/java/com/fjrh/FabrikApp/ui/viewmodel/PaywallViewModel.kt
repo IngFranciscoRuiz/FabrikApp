@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -109,10 +110,28 @@ class PaywallViewModel @Inject constructor(
             billingService.purchaseStatus.collect { status ->
                 when (status) {
                     is BillingService.PurchaseStatus.Success -> {
-                        _uiState.value = PaywallUiState.Success
+                        // Cuando la compra es exitosa, actualizar estado de suscripción
+                        println("PaywallViewModel: Purchase successful, updating subscription status")
+                        billingService.refreshSubscriptionStatus()
+                        
+                        // Esperar un momento para que se actualice el estado
+                        delay(500L)
+                        
+                        // Verificar si realmente es premium ahora
+                        val isPremiumActive = billingService.isPremiumActive.value
+                        if (isPremiumActive) {
+                            println("PaywallViewModel: Premium confirmed, navigating to success")
+                            _uiState.value = PaywallUiState.Success
+                        } else {
+                            println("PaywallViewModel: Premium not confirmed, showing error")
+                            _uiState.value = PaywallUiState.Error("Error al activar suscripción")
+                        }
                     }
                     is BillingService.PurchaseStatus.Error -> {
                         if (status.message.contains("cancelada")) {
+                            println("PaywallViewModel: Purchase cancelled, refreshing subscription status")
+                            // Refrescar estado de suscripción cuando hay cancelación
+                            billingService.refreshSubscriptionStatus()
                             _uiState.value = PaywallUiState.Cancelled
                         } else {
                             _uiState.value = PaywallUiState.Error(status.message)

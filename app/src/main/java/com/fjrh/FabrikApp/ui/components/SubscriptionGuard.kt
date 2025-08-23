@@ -48,6 +48,9 @@ fun SubscriptionGuard(
         }
     } ?: true // Si no hay info de suscripción, permitir acceso
 
+    // Log para debugging
+    println("SubscriptionGuard: isPremium=${subscriptionInfo?.isPremium}, isFeatureAvailable=$isFeatureAvailable")
+
     if (isFeatureAvailable) {
         content()
     } else {

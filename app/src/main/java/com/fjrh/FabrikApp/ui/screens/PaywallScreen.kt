@@ -101,6 +101,8 @@ fun PaywallScreen(
                 showRestoreError = null
                 // Limpiar estado después de cancelación
                 viewModel.clearState()
+                // Refrescar estado de suscripción para asegurar que SubscriptionGuard se actualice
+                viewModel.getBillingService().refreshSubscriptionStatus()
             }
             else -> {
                 showRestoreError = null

@@ -258,7 +258,7 @@ class BillingService @Inject constructor(
             
             if (standardProduct != null) {
                 println("BillingService: Using standard product without trial")
-                launchStandardPurchase(activity, standardProduct)
+                launchStandardPurchase(activity, standardProduct, isMonthly)
             } else {
                 _purchaseStatus.value = PurchaseStatus.Error("Producto no disponible. Intenta de nuevo.")
             }
@@ -291,22 +291,24 @@ class BillingService @Inject constructor(
         }
     }
     
-    private fun launchStandardPurchase(activity: Activity, productDetails: ProductDetails) {
+    private fun launchStandardPurchase(activity: Activity, productDetails: ProductDetails, isMonthly: Boolean) {
         // Para productos base sin trial, necesitamos encontrar el offer correcto
         val offers = productDetails.subscriptionOfferDetails.orEmpty()
         println("BillingService: Looking for standard product offer among ${offers.size} offers")
         
-        // Buscar el offer del base plan sin trial (offerId = null)
+        // Buscar el offer específico según la selección del usuario
+        val targetBasePlanId = if (isMonthly) BASE_PLAN_MONTHLY else BASE_PLAN_YEARLY
+        println("BillingService: Looking for base plan: $targetBasePlanId")
+        
         val standardOffer = offers.find { offer ->
-            (offer.basePlanId == BASE_PLAN_MONTHLY || offer.basePlanId == BASE_PLAN_YEARLY) && 
-            offer.offerId == null
+            offer.basePlanId == targetBasePlanId && offer.offerId == null
         }
         
         if (standardOffer != null) {
             println("BillingService: Using standard offer: basePlanId=${standardOffer.basePlanId}, offerToken=${standardOffer.offerToken}")
             launchBillingFlow(activity, productDetails, standardOffer.offerToken)
         } else {
-            println("BillingService: No standard offer found")
+            println("BillingService: No standard offer found for base plan: $targetBasePlanId")
             _purchaseStatus.value = PurchaseStatus.Error("No se encontró oferta para el producto base")
         }
     }
