@@ -41,15 +41,21 @@ class PaywallViewModel @Inject constructor(
                 return@launch
             }
             
-            // Verificar que el offer token esté disponible
+            // Verificar que haya productos disponibles (trial o standard)
             val offerToken = if (isMonthly) {
                 billingService.monthlyOfferToken.value
             } else {
                 billingService.yearlyOfferToken.value
             }
             
-            if (offerToken == null) {
-                _uiState.value = PaywallUiState.Error("Oferta no disponible. Intenta de nuevo.")
+            val standardProduct = if (isMonthly) {
+                billingService.monthlyStandardProduct.value
+            } else {
+                billingService.yearlyStandardProduct.value
+            }
+            
+            if (offerToken == null && standardProduct == null) {
+                _uiState.value = PaywallUiState.Error("Producto no disponible. Intenta de nuevo.")
                 return@launch
             }
             
@@ -95,6 +101,8 @@ class PaywallViewModel @Inject constructor(
         _uiState.value = PaywallUiState.Idle
     }
     
+    fun getBillingService() = billingService
+    
     fun initializeBilling() {
         viewModelScope.launch {
             _uiState.value = PaywallUiState.Loading
@@ -102,22 +110,29 @@ class PaywallViewModel @Inject constructor(
             try {
                 billingService.initializeBilling()
                 
-                // Observar cuando billing esté conectado y los tokens estén cargados
+                // Observar cuando billing esté conectado y los productos estén cargados
                 combine(
                     billingService.isConnected,
                     billingService.monthlyOfferToken,
-                    billingService.yearlyOfferToken
-                ) { isConnected, monthlyToken, yearlyToken ->
-                    Triple(isConnected, monthlyToken, yearlyToken)
-                }.collect { (isConnected, monthlyToken, yearlyToken) ->
-                    if (isConnected && monthlyToken != null && yearlyToken != null) {
+                    billingService.yearlyOfferToken,
+                    billingService.monthlyStandardProduct,
+                    billingService.yearlyStandardProduct
+                ) { isConnected, monthlyToken, yearlyToken, monthlyStandard, yearlyStandard ->
+                    val hasValidOptions = monthlyToken != null || yearlyToken != null || monthlyStandard != null || yearlyStandard != null
+                    println("PaywallViewModel: State update - Connected: $isConnected, HasValidOptions: $hasValidOptions")
+                    println("PaywallViewModel: MonthlyToken: ${monthlyToken != null}, YearlyToken: ${yearlyToken != null}")
+                    println("PaywallViewModel: MonthlyStandard: ${monthlyStandard != null}, YearlyStandard: ${yearlyStandard != null}")
+                    
+                    isConnected to hasValidOptions
+                }.collect { (isConnected, hasValidOptions) ->
+                    if (isConnected && hasValidOptions) {
                         _isBillingReady.value = true
                         _uiState.value = PaywallUiState.Idle
-                        println("PaywallViewModel: Billing ready! Monthly: $monthlyToken, Yearly: $yearlyToken")
-                    } else if (isConnected && (monthlyToken == null || yearlyToken == null)) {
+                        println("PaywallViewModel: Billing ready! Has valid options: $hasValidOptions")
+                    } else if (isConnected && !hasValidOptions) {
                         _isBillingReady.value = false
-                        _uiState.value = PaywallUiState.Error("Error: No se pudieron cargar las ofertas")
-                        println("PaywallViewModel: Connected but tokens missing. Monthly: $monthlyToken, Yearly: $yearlyToken")
+                        _uiState.value = PaywallUiState.Error("No se pudieron cargar los productos. Intenta de nuevo.")
+                        println("PaywallViewModel: Connected but no valid options available")
                     } else {
                         _isBillingReady.value = false
                         println("PaywallViewModel: Not connected yet. Connected: $isConnected")

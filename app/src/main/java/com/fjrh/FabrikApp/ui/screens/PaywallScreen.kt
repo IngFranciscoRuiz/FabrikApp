@@ -27,6 +27,22 @@ fun PaywallScreen(
     navController: NavController,
     viewModel: PaywallViewModel = hiltViewModel()
 ) {
+    // Obtener estado de billing para mostrar texto correcto
+    val billingService = viewModel.getBillingService()
+    val monthlyOfferToken by billingService.monthlyOfferToken.collectAsState()
+    val yearlyOfferToken by billingService.yearlyOfferToken.collectAsState()
+    val monthlyStandardProduct by billingService.monthlyStandardProduct.collectAsState()
+    val yearlyStandardProduct by billingService.yearlyStandardProduct.collectAsState()
+    
+    // Determinar si hay ofertas de prueba gratuita disponibles
+    val hasTrialOffers = monthlyOfferToken != null || yearlyOfferToken != null
+    val hasStandardProducts = monthlyStandardProduct != null || yearlyStandardProduct != null
+    
+    val trialText = when {
+        hasTrialOffers -> "7 días de prueba gratuita • Cancela cuando quieras"
+        hasStandardProducts -> "Suscripción directa • Cancela cuando quieras"
+        else -> "Productos no disponibles"
+    }
     val context = LocalContext.current
     
     // Obtener activity de forma más confiable usando el contexto del NavController
@@ -122,7 +138,7 @@ fun PaywallScreen(
                 
                 // Información de prueba gratuita
                 Text(
-                    text = "7 días de prueba gratuita • Cancela cuando quieras",
+                    text = trialText,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = Color(0xFF4CAF50),
@@ -224,7 +240,11 @@ fun PaywallScreen(
                     title = "Plan Mensual",
                     price = "$79 MXN",
                     period = "por mes",
-                    trialText = "7 días de prueba gratuita",
+                    trialText = when {
+                        hasTrialOffers -> "7 días de prueba gratuita"
+                        hasStandardProducts -> "Suscripción directa"
+                        else -> "No disponible"
+                    },
                     features = listOf(
                         "✓ Acceso completo a todas las funciones",
                         "✓ Exportación e importación de datos",
@@ -233,14 +253,17 @@ fun PaywallScreen(
                     ),
                     isPopular = false,
                     onClick = {
-                        println("PaywallScreen: Monthly card clicked!")
-                        activity?.let { act ->
-                            println("PaywallScreen: Activity found, calling purchaseSubscription(true)")
-                            viewModel.purchaseSubscription(act, true)
-                        } ?: run {
-                            println("PaywallScreen: Activity is null!")
+                        if (hasTrialOffers || hasStandardProducts) {
+                            println("PaywallScreen: Monthly card clicked!")
+                            activity?.let { act ->
+                                println("PaywallScreen: Activity found, calling purchaseSubscription(true)")
+                                viewModel.purchaseSubscription(act, true)
+                            } ?: run {
+                                println("PaywallScreen: Activity is null!")
+                            }
                         }
-                    }
+                    },
+                    isEnabled = hasTrialOffers || hasStandardProducts
                 )
             }
             
@@ -250,7 +273,11 @@ fun PaywallScreen(
                     title = "Plan Anual",
                     price = "$749 MXN",
                     period = "por año",
-                    trialText = "7 días de prueba gratuita",
+                    trialText = when {
+                        hasTrialOffers -> "7 días de prueba gratuita"
+                        hasStandardProducts -> "Suscripción directa"
+                        else -> "No disponible"
+                    },
                     features = listOf(
                         "✓ Todo del plan mensual",
                         "✓ 2 meses gratis",
@@ -259,14 +286,17 @@ fun PaywallScreen(
                     ),
                     isPopular = true,
                     onClick = {
-                        println("PaywallScreen: Yearly card clicked!")
-                        activity?.let { act ->
-                            println("PaywallScreen: Activity found, calling purchaseSubscription(false)")
-                            viewModel.purchaseSubscription(act, false)
-                        } ?: run {
-                            println("PaywallScreen: Activity is null!")
+                        if (hasTrialOffers || hasStandardProducts) {
+                            println("PaywallScreen: Yearly card clicked!")
+                            activity?.let { act ->
+                                println("PaywallScreen: Yearly card clicked!")
+                                viewModel.purchaseSubscription(act, false)
+                            } ?: run {
+                                println("PaywallScreen: Activity is null!")
+                            }
                         }
-                    }
+                    },
+                    isEnabled = hasTrialOffers || hasStandardProducts
                 )
             }
             
@@ -323,7 +353,8 @@ private fun PaywallSubscriptionCard(
     trialText: String,
     features: List<String>,
     isPopular: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isEnabled: Boolean = true
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -426,10 +457,11 @@ private fun PaywallSubscriptionCard(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isPopular) Color(0xFF1976D2) else Color(0xFF4CAF50)
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                enabled = isEnabled
             ) {
                 Text(
-                    text = "Comenzar Prueba Gratuita",
+                    text = if (trialText.contains("prueba gratuita")) "Comenzar Prueba Gratuita" else "Suscribirse Ahora",
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
